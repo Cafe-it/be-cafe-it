@@ -1,43 +1,32 @@
-import {
-  IsBoolean,
-  IsEmail,
-  IsString,
-  IsNotEmpty,
-  IsArray,
-  IsNumber,
-} from "class-validator";
 import { OwnerId } from "./owner-common.dto";
-import { Expose } from "class-transformer";
+import {
+  EmailProperty,
+  CafeIdsArrayProperty,
+  JwtTokenProperty,
+  ExpirationTimeProperty,
+  SuccessProperty,
+} from "../../common/decorators/property.decorators";
 
 export class OwnerCommonResponse extends OwnerId {
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
-  @IsEmail()
+  @EmailProperty()
   email: string;
 
-  @Expose()
-  @IsArray()
-  @IsString({ each: true })
+  @CafeIdsArrayProperty()
   cafeIds: string[];
 }
 
 export class OwnerResponseWithTokens extends OwnerCommonResponse {
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
-  @IsString()
+  @JwtTokenProperty({
+    description: "JWT access token",
+  })
   accessToken: string;
 
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
-  @IsString()
+  @JwtTokenProperty({
+    description: "JWT refresh token",
+  })
   refreshToken: string;
 
-  @Expose()
-  @IsNumber()
-  @IsNotEmpty()
+  @ExpirationTimeProperty()
   expiresIn: number;
 }
 
@@ -45,9 +34,8 @@ export class GetOwnerByIdResponse extends OwnerCommonResponse {}
 export class UpdateOwnerResponse extends OwnerResponseWithTokens {}
 export class CreateOwnerResponse extends OwnerResponseWithTokens {}
 export class DeleteOwnerResponse {
-  @Expose()
-  @IsBoolean()
-  @IsNotEmpty()
-  @IsBoolean()
+  @SuccessProperty({
+    description: "Indicates whether the deletion was successful",
+  })
   success: boolean;
 }

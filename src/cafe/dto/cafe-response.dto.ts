@@ -1,42 +1,46 @@
-import { Expose, Type } from "class-transformer";
+import { Type } from "class-transformer";
 import {
   Location,
   SeatAvailability,
   StoreInformation,
 } from "./cafe-common.dto";
-import { IsUUID, ValidateNested } from "class-validator";
+import { ValidateNested } from "class-validator";
+import {
+  CafeIdProperty,
+  OwnerIdProperty,
+  NestedProperty,
+} from "../../common/decorators/property.decorators";
 
 export class CafeFullResponse {
-  @Expose()
-  @IsUUID()
+  @CafeIdProperty()
   id: string;
 
-  @Expose()
-  @IsUUID()
+  @OwnerIdProperty()
   ownerId: string;
 
-  @Expose()
-  @ValidateNested()
-  @Type(() => StoreInformation)
+  @NestedProperty(StoreInformation, {
+    description:
+      "Complete store information including name, address, and hours",
+  })
   storeInformation: StoreInformation;
 
-  @Expose()
-  @ValidateNested()
-  @Type(() => Location)
+  @NestedProperty(Location, {
+    description: "Geographic location of the cafe",
+  })
   location: Location;
 
-  @Expose()
-  @ValidateNested()
-  @Type(() => SeatAvailability)
+  @NestedProperty(SeatAvailability, {
+    description: "Current seat availability information",
+  })
   seatAvailability: SeatAvailability;
 }
 
 export class CafeSeatAvailabilityResponse {
-  @Expose()
-  @IsUUID()
+  @CafeIdProperty()
   id: string;
 
-  @Expose()
-  @Type(() => SeatAvailability)
+  @NestedProperty(SeatAvailability, {
+    description: "Current seat availability information",
+  })
   seatAvailability: SeatAvailability;
 }

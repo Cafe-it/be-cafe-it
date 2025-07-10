@@ -1,25 +1,19 @@
 import { Type } from "class-transformer";
-import {
-  IsNumber,
-  Min,
-  Max,
-  ValidateNested,
-  IsString,
-  IsNotEmpty,
-  IsUUID,
-} from "class-validator";
+import { ValidateNested } from "class-validator";
 import {
   Location,
   CafeId,
   StoreInformation,
   SeatAvailability,
 } from "./cafe-common.dto";
+import {
+  RadiusProperty,
+  OwnerIdProperty,
+  NestedProperty,
+} from "../../common/decorators/property.decorators";
 
 export class GetNearbyCafesRequest extends Location {
-  @IsNumber()
-  @Min(0.1)
-  @Max(30)
-  @Type(() => Number)
+  @RadiusProperty()
   radius?: number = 3; // in km
 }
 
@@ -27,29 +21,31 @@ export class GetCafeByIdRequest extends CafeId {}
 export class GetCafeSeatsByIdRequest extends CafeId {}
 
 export class CreateCafeRequest {
-  @IsString()
-  @IsNotEmpty()
-  @IsUUID()
+  @OwnerIdProperty()
   ownerId: string;
 
-  @ValidateNested()
-  @Type(() => Location)
+  @NestedProperty(Location, {
+    description: "Geographic location of the cafe",
+  })
   location: Location;
 
-  @ValidateNested()
-  @Type(() => SeatAvailability)
+  @NestedProperty(SeatAvailability, {
+    description: "Current seat availability information",
+  })
   seatAvailability: SeatAvailability;
 
-  @ValidateNested()
-  @Type(() => StoreInformation)
+  @NestedProperty(StoreInformation, {
+    description: "Store information including name, address, and hours",
+  })
   storeInformation: StoreInformation;
 }
 
 // Dedicated seat availability update request
 export class UpdateCafeSeatAvailabilityRequest extends SeatAvailability {
-  @IsString()
-  @IsNotEmpty()
-  @IsUUID()
+  @OwnerIdProperty({
+    description:
+      "Unique identifier of the cafe owner (must match the cafe's owner)",
+  })
   ownerId: string;
 }
 

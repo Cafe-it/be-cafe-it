@@ -116,48 +116,23 @@ export class AuthService {
     refreshToken: string
   ): Promise<RefreshTokenResponse> {
     try {
-      this.logger.log("Refreshing access token");
-
-      // Verify refresh token
       const jwtPayload = this.jwtService.verify<JwtPayload>(refreshToken, {
         secret: this.jwtSecret,
       });
 
-      // Check if it's a refresh token
       if (jwtPayload.type !== "refresh") {
         this.logger.warn("Invalid token type provided for refresh");
         throw new UnauthorizedException("Invalid token type");
       }
 
-      // Generate new tokens using extracted subject and data
       const tokens = await this.generateTokens(jwtPayload.sub, jwtPayload.data);
 
-      this.logger.log("Access token refreshed successfully");
+      this.logger.log(
+        `Access token refreshed successfully with params=${jwtPayload.sub}`
+      );
       return tokens;
     } catch (error) {
-      // Handle JWT verification errors gracefully (these are expected validation failures)
-      if (error.name === "JsonWebTokenError") {
-        this.logger.warn("Invalid refresh token provided: JWT malformed");
-        throw new UnauthorizedException("Invalid refresh token");
-      }
-
-      if (error.name === "TokenExpiredError") {
-        this.logger.warn("Refresh token has expired");
-        throw new UnauthorizedException("Refresh token expired");
-      }
-
-      if (error.name === "NotBeforeError") {
-        this.logger.warn("Refresh token not active yet");
-        throw new UnauthorizedException("Invalid refresh token");
-      }
-
-      // Re-throw UnauthorizedException without logging (already handled above)
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-
-      // Log unexpected errors as ERROR
-      this.logger.error("Unexpected error during token refresh:", error);
+      this.logger.error("Failed to refresh token:", error);
       throw new UnauthorizedException("Invalid refresh token");
     }
   }

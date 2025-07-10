@@ -4,8 +4,10 @@ import {
   NotFoundException,
   UnauthorizedException,
   ConflictException,
-  BadRequestException,
 } from "@nestjs/common";
+import { AuthService } from "../auth/auth.service";
+import { generateRandomId } from "../common/utils/generator";
+import { transformToInstance } from "../common/utils/transform";
 import {
   CreateOwnerRequest,
   GetOwnerByIdRequest,
@@ -19,9 +21,6 @@ import {
   DeleteOwnerResponse,
 } from "./dto/owner-response.dto";
 import { OwnerRepository } from "./repository/owner.repository";
-import { AuthService } from "../auth/auth.service";
-import { generateRandomId } from "../common/utils/generator";
-import { transformToInstance } from "../common/utils/transform";
 
 @Injectable()
 export class OwnerService {

@@ -6,14 +6,14 @@ import {
   RequestMethod,
 } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
-import { OwnerController } from "./owner.controller";
-import { OwnerService } from "./owner.service";
-import { OwnerRepository } from "./repository/owner.repository";
 import { AuthModule } from "../auth/auth.module";
-import { Owner, OwnerSchema } from "./schemas/owner.schema";
 import { JwtCommonMiddleware } from "../common/middlewares/jwt-common.middleware";
 import { JwtOwnerMiddleware } from "../common/middlewares/jwt-owner.middleware";
 import { JwtOwnerAuthMiddleware } from "../common/middlewares/jwt-owner-auth.middleware";
+import { OwnerController } from "./owner.controller";
+import { OwnerService } from "./owner.service";
+import { OwnerRepository } from "./repository/owner.repository";
+import { Owner, OwnerSchema } from "./schemas/owner.schema";
 
 @Module({
   imports: [

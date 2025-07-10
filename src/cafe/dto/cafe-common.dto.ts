@@ -1,116 +1,115 @@
-import { Expose, Type } from "class-transformer";
+import { Type } from "class-transformer";
+import { ValidateNested } from "class-validator";
 import {
-  IsBoolean,
-  IsISO8601,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  IsUrl,
-  IsUUID,
-  Max,
-  Min,
-  ValidateNested,
-} from "class-validator";
+  UuidProperty,
+  StringProperty,
+  UrlProperty,
+  BooleanProperty,
+  NestedProperty,
+  OptionalDateProperty,
+  LatitudeProperty,
+  LongitudeProperty,
+  TimeProperty,
+  SeatCountProperty,
+  NoiseLevelProperty,
+} from "../../common/decorators/property.decorators";
 
 export class Location {
-  @IsNumber()
-  @Min(-90)
-  @Max(90)
-  @Expose()
-  @Type(() => Number)
+  @LatitudeProperty()
   lat: number;
 
-  @IsNumber()
-  @Min(-180)
-  @Max(180)
-  @Expose()
-  @Type(() => Number)
+  @LongitudeProperty()
   lng: number;
 }
 
 export class CafeId {
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
-  @IsUUID()
+  @UuidProperty({ description: "Unique identifier of the cafe" })
   cafeId: string;
 }
 
 export class StoreLinks {
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
-  @IsUrl()
+  @UrlProperty({
+    description: "Google Maps or similar map service URL",
+    example: "https://maps.google.com/maps?q=37.7749,-122.4194",
+  })
   mapUrl: string;
 }
+
 export class OperatingHours {
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
+  @TimeProperty({
+    description: "Opening time in HH:mm format",
+  })
   startTime: string;
 
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
+  @TimeProperty({
+    description: "Closing time in HH:mm format",
+    example: "22:00",
+  })
   endTime: string;
 }
 
 export class Amenities {
-  @Expose()
-  @IsString()
+  @NoiseLevelProperty()
   noiseLevel: string;
 
-  @Expose()
-  @IsBoolean()
+  @BooleanProperty({
+    description: "Whether the cafe has WiFi available",
+    example: true,
+  })
   hasWifi: boolean;
 
-  @Expose()
-  @IsBoolean()
+  @BooleanProperty({
+    description: "Whether the cafe has power outlets available",
+    example: true,
+  })
   hasOutlets: boolean;
 }
 
 export class StoreInformation {
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
+  @StringProperty({
+    description: "Name of the cafe",
+    example: "Blue Bottle Coffee",
+  })
   name: string;
 
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
+  @StringProperty({
+    description: "Physical address of the cafe",
+    example: "123 Main St, San Francisco, CA 94102",
+  })
   address: string;
 
-  @Expose()
-  @ValidateNested()
-  @Type(() => OperatingHours)
+  @NestedProperty(OperatingHours, {
+    description: "Operating hours for the cafe",
+  })
   hours: OperatingHours;
 
-  @Expose()
-  @ValidateNested()
-  @Type(() => StoreLinks)
+  @NestedProperty(StoreLinks, {
+    description: "External links for the cafe",
+  })
   links: StoreLinks;
 
-  @Expose()
-  @ValidateNested()
-  @Type(() => Amenities)
+  @NestedProperty(Amenities, {
+    description: "Available amenities at the cafe",
+    required: false,
+  })
   amenities?: Amenities;
 }
 
 export class SeatAvailability {
-  @Expose()
-  @IsNumber()
-  @Min(0)
+  @SeatCountProperty({
+    description: "Total number of seats in the cafe",
+  })
   totalSeats: number;
 
-  @Expose()
-  @IsNumber()
-  @Min(0)
+  @SeatCountProperty({
+    description: "Number of currently available seats",
+    example: 15,
+  })
   availableSeats: number;
 
-  @Expose()
-  @IsString()
-  @IsISO8601()
-  @IsOptional()
+  @OptionalDateProperty({
+    description: "ISO timestamp of when seat availability was last updated",
+    example: "2024-01-15T10:30:00.000Z",
+  })
   lastUpdated?: string;
 }

@@ -1,23 +1,18 @@
-import { Expose } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsString, IsUUID } from "class-validator";
+import {
+  OwnerIdProperty,
+  EmailProperty,
+  PasswordProperty,
+} from "../../common/decorators/property.decorators";
 
 export class OwnerId {
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
-  @IsUUID()
+  @OwnerIdProperty()
   ownerId: string;
 }
 
 export class OwnerCredentials {
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
-  @IsEmail()
+  @EmailProperty()
   email: string;
 
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
+  @PasswordProperty()
   password: string;
 }

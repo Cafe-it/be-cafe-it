@@ -8,6 +8,16 @@ import {
   Put,
   Delete,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
+import {
+  CafeGetNearbyEndpoint,
+  CafeGetByIdEndpoint,
+  CafeGetSeatsEndpoint,
+  CafeUpdateSeatsEndpoint,
+  CafeCreateEndpoint,
+  CafeUpdateEndpoint,
+  CafeDeleteEndpoint,
+} from "../common/decorators/endpoint.decorators";
 import { CafeService } from "./cafe.service";
 import {
   CreateCafeRequest,
@@ -22,36 +32,40 @@ import {
   CafeSeatAvailabilityResponse,
 } from "./dto/cafe-response.dto";
 
+@ApiTags("cafes")
 @Controller("cafes")
 export class CafeController {
   constructor(private readonly cafeService: CafeService) {}
 
-  // GET /cafes/?lat=12.3456&lng=78.9012&radius=3
   @Get()
+  @CafeGetNearbyEndpoint(CafeFullResponse)
   async getNearbyCafes(
     @Query() req: GetNearbyCafesRequest
   ): Promise<CafeFullResponse[]> {
     return this.cafeService.getNearbyCafes(req);
   }
 
-  // GET /cafes/:cafeId
   @Get(":cafeId")
+  @CafeGetByIdEndpoint(CafeFullResponse)
   async getCafeById(
     @Param() req: GetCafeByIdRequest
   ): Promise<CafeFullResponse> {
     return this.cafeService.getCafeById(req);
   }
 
-  // GET /cafes/:cafeId/seats-availability
   @Get(":cafeId/seats-availability")
+  @CafeGetSeatsEndpoint(CafeSeatAvailabilityResponse)
   async getCafeSeatsById(
     @Param() req: GetCafeSeatsByIdRequest
   ): Promise<CafeSeatAvailabilityResponse> {
     return this.cafeService.getCafeSeatsById(req);
   }
 
-  // PUT /cafes/:cafeId/seats-availability
   @Put(":cafeId/seats-availability")
+  @CafeUpdateSeatsEndpoint(
+    CafeSeatAvailabilityResponse,
+    UpdateCafeSeatAvailabilityRequest
+  )
   async updateCafeSeatsById(
     @Param() { cafeId }: GetCafeByIdRequest,
     @Body() req: UpdateCafeSeatAvailabilityRequest
@@ -59,14 +73,14 @@ export class CafeController {
     return this.cafeService.updateCafeSeatsById(cafeId, req);
   }
 
-  // POST /cafes
   @Post()
+  @CafeCreateEndpoint(CafeFullResponse, CreateCafeRequest)
   async createCafe(@Body() req: CreateCafeRequest): Promise<CafeFullResponse> {
     return this.cafeService.createCafe(req);
   }
 
-  // PUT /cafes/:cafeId
   @Put(":cafeId")
+  @CafeUpdateEndpoint(CafeFullResponse, UpdateCafeRequest)
   async updateCafe(
     @Param() { cafeId }: GetCafeByIdRequest,
     @Body() req: UpdateCafeRequest
@@ -74,8 +88,8 @@ export class CafeController {
     return this.cafeService.updateCafe(cafeId, req);
   }
 
-  // DELETE /cafes/:cafeId
   @Delete(":cafeId")
+  @CafeDeleteEndpoint(Boolean)
   async deleteCafe(@Param() { cafeId }: GetCafeByIdRequest): Promise<boolean> {
     return this.cafeService.deleteCafe(cafeId);
   }

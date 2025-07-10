@@ -6,16 +6,16 @@ import {
   RequestMethod,
 } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
+import { AuthModule } from "../auth/auth.module";
+import { JwtCommonMiddleware } from "../common/middlewares/jwt-common.middleware";
+import { JwtCafeOwnerMiddleware } from "../common/middlewares/jwt-cafe-owner.middleware";
+import { JwtCafeOwnerAuthMiddleware } from "../common/middlewares/jwt-cafe-owner-auth.middleware";
 import { CafeController } from "./cafe.controller";
 import { CafeService } from "./cafe.service";
 import { CafeRepository } from "./repository/cafe.repository";
 import { CafeTransformService } from "./services/cafe-transform.service";
 import { CafeValidationService } from "./services/cafe-validation.service";
 import { Cafe, CafeSchema } from "./schemas/cafe.schema";
-import { AuthModule } from "../auth/auth.module";
-import { JwtCommonMiddleware } from "../common/middlewares/jwt-common.middleware";
-import { JwtCafeOwnerMiddleware } from "../common/middlewares/jwt-cafe-owner.middleware";
-import { JwtCafeOwnerAuthMiddleware } from "../common/middlewares/jwt-cafe-owner-auth.middleware";
 
 @Module({
   imports: [

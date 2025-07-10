@@ -1,8 +1,8 @@
 import { Injectable, Inject, Logger } from "@nestjs/common";
+import { generateRandomId } from "../common/utils/generator";
 import { ICafeRepository } from "./repository/cafe.repository.interface";
 import { CafeTransformService } from "./services/cafe-transform.service";
 import { CafeValidationService } from "./services/cafe-validation.service";
-
 import {
   GetCafeByIdRequest,
   GetNearbyCafesRequest,
@@ -15,7 +15,6 @@ import {
   CafeFullResponse,
   CafeSeatAvailabilityResponse,
 } from "./dto/cafe-response.dto";
-import { generateRandomId } from "../common/utils/generator";
 
 @Injectable()
 export class CafeService {

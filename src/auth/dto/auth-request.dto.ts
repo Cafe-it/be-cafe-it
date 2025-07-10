@@ -1,7 +1,8 @@
-import { IsString, IsNotEmpty } from "class-validator";
+import { JwtTokenProperty } from "../../common/decorators/property.decorators";
 
 export class RefreshTokenRequest {
-  @IsString()
-  @IsNotEmpty()
+  @JwtTokenProperty({
+    description: "JWT refresh token",
+  })
   refreshToken: string;
 }
