@@ -88,12 +88,14 @@ export class CafeTransformService {
    */
   transformCafeForCreation(data: {
     id: string;
+    ownerId: string;
     location: { lat: number; lng: number };
     seatAvailability: { totalSeats: number; availableSeats: number };
     storeInformation: StoreInformation;
   }): CafeModel {
     return {
       id: data.id,
+      ownerId: data.ownerId,
       location: this.locationToGeoCoordinates(data.location),
       seatAvailability: this.createSeatAvailabilityWithTimestamp(
         data.seatAvailability.totalSeats,

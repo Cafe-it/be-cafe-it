@@ -121,12 +121,13 @@ export class CafeService {
   async createCafe(dto: CreateCafeRequest): Promise<CafeFullResponse> {
     this.logger.log(`createCafe, params=${JSON.stringify(dto)}`);
 
-    const { location, seatAvailability, storeInformation } = dto;
+    const { ownerId, location, seatAvailability, storeInformation } = dto;
 
     this.validationService.validateCreateCafeRequest(dto);
     const id = generateRandomId();
     const cafeData = this.transformService.transformCafeForCreation({
       id,
+      ownerId,
       location,
       seatAvailability,
       storeInformation,
@@ -156,8 +157,13 @@ export class CafeService {
 
     this.validationService.validateUpdateCafeRequest(dto);
 
+    // Get existing cafe to preserve ownerId
+    const existingCafe = await this.cafeRepository.findById(cafeId);
+    this.validationService.validateCafeExists(existingCafe, cafeId);
+
     const cafeData = this.transformService.transformCafeForCreation({
       id: cafeId,
+      ownerId: existingCafe.ownerId,
       location,
       seatAvailability,
       storeInformation,

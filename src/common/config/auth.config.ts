@@ -2,13 +2,15 @@ import { registerAs } from "@nestjs/config";
 
 export interface AuthConfig {
   jwtSecret: string;
-  jwtExpiration: string;
+  jwtAccessExpiration: string;
+  jwtRefreshExpiration: string;
 }
 
 export default registerAs(
   "auth",
   (): AuthConfig => ({
     jwtSecret: process.env.JWT_SECRET!,
-    jwtExpiration: process.env.JWT_EXPIRATION!,
+    jwtAccessExpiration: process.env.JWT_ACCESS_EXPIRATION!,
+    jwtRefreshExpiration: process.env.JWT_REFRESH_EXPIRATION!,
   })
 );

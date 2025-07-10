@@ -1,5 +1,13 @@
 import { Type } from "class-transformer";
-import { IsNumber, Min, Max, ValidateNested } from "class-validator";
+import {
+  IsNumber,
+  Min,
+  Max,
+  ValidateNested,
+  IsString,
+  IsNotEmpty,
+  IsUUID,
+} from "class-validator";
 import {
   Location,
   CafeId,
@@ -19,6 +27,11 @@ export class GetCafeByIdRequest extends CafeId {}
 export class GetCafeSeatsByIdRequest extends CafeId {}
 
 export class CreateCafeRequest {
+  @IsString()
+  @IsNotEmpty()
+  @IsUUID()
+  ownerId: string;
+
   @ValidateNested()
   @Type(() => Location)
   location: Location;
@@ -33,7 +46,12 @@ export class CreateCafeRequest {
 }
 
 // Dedicated seat availability update request
-export class UpdateCafeSeatAvailabilityRequest extends SeatAvailability {}
+export class UpdateCafeSeatAvailabilityRequest extends SeatAvailability {
+  @IsString()
+  @IsNotEmpty()
+  @IsUUID()
+  ownerId: string;
+}
 
 // Single flexible update request - cafeId comes from URL params, not body
 export class UpdateCafeRequest extends CreateCafeRequest {}

@@ -4,11 +4,16 @@ import {
   SeatAvailability,
   StoreInformation,
 } from "./cafe-common.dto";
-import { ValidateNested } from "class-validator";
+import { IsUUID, ValidateNested } from "class-validator";
 
 export class CafeFullResponse {
   @Expose()
+  @IsUUID()
   id: string;
+
+  @Expose()
+  @IsUUID()
+  ownerId: string;
 
   @Expose()
   @ValidateNested()
@@ -28,6 +33,7 @@ export class CafeFullResponse {
 
 export class CafeSeatAvailabilityResponse {
   @Expose()
+  @IsUUID()
   id: string;
 
   @Expose()

@@ -83,6 +83,9 @@ export class Cafe {
   @Prop({ required: true, unique: true, default: generateRandomId })
   id: string;
 
+  @Prop({ required: true })
+  ownerId: string;
+
   @Prop({ type: SeatAvailabilitySchema, required: true })
   seatAvailability: SeatAvailability;
 

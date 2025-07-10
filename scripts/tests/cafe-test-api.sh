@@ -6,6 +6,12 @@
 # Configuration
 BASE_URL="http://localhost:3000"
 CAFES_ENDPOINT="$BASE_URL/api/cafes"
+OWNERS_ENDPOINT="$BASE_URL/api/owners"
+
+# Test owner credentials (using timestamp to ensure uniqueness)
+TIMESTAMP=$(date +%s)
+TEST_OWNER_EMAIL="test-api-owner-${TIMESTAMP}@example.com"
+TEST_OWNER_PASSWORD="testpassword123"
 
 # Colors for output
 RED='\033[0;31m'
@@ -14,8 +20,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Global variable to store created cafe ID
+# Global variables
 CAFE_ID=""
+ACCESS_TOKEN=""
+OWNER_ID=""
 
 # Function to print colored output
 print_step() {
@@ -39,6 +47,16 @@ extract_cafe_id() {
     echo "$1" | grep -o '"id":"[^"]*"' | cut -d'"' -f4
 }
 
+# Function to extract access token from response
+extract_access_token() {
+    echo "$1" | grep -o '"accessToken":"[^"]*"' | sed 's/"accessToken":"//' | sed 's/"//'
+}
+
+# Function to extract owner ID from response
+extract_owner_id() {
+    echo "$1" | grep -o '"ownerId":"[^"]*"' | sed 's/"ownerId":"//' | sed 's/"//'
+}
+
 # Function to check if server is running
 check_server() {
     print_step "Checking if server is running"
@@ -52,13 +70,63 @@ check_server() {
     fi
 }
 
+# Setup: Create test owner for authentication
+setup_test_owner() {
+    print_step "Setup: Creating test owner for authentication"
+    
+    response=$(curl -s -X POST "$OWNERS_ENDPOINT" \
+        -H "Content-Type: application/json" \
+        -d '{
+            "email": "'$TEST_OWNER_EMAIL'",
+            "password": "'$TEST_OWNER_PASSWORD'"
+        }')
+    
+    if [[ $response == *"ownerId"* ]] && [[ $response == *"accessToken"* ]]; then
+        ACCESS_TOKEN=$(extract_access_token "$response")
+        OWNER_ID=$(extract_owner_id "$response")
+        print_success "Test owner created successfully"
+        print_success "Owner ID: $OWNER_ID"
+        print_success "Access Token: ${ACCESS_TOKEN:0:30}..."
+    else
+        print_error "Failed to create test owner"
+        echo "Response: $response"
+        exit 1
+    fi
+    echo
+}
+
+# Cleanup: Delete test owner
+cleanup_test_owner() {
+    print_step "Cleanup: Deleting test owner"
+    
+    if [[ -n "$OWNER_ID" ]] && [[ -n "$ACCESS_TOKEN" ]]; then
+        response=$(curl -s -X DELETE "$OWNERS_ENDPOINT/$OWNER_ID" \
+            -H "Authorization: Bearer $ACCESS_TOKEN")
+        
+        if [[ $response == *"\"success\":true"* ]]; then
+            print_success "Test owner deleted successfully"
+        else
+            print_warning "Failed to delete test owner (may have been cleaned up already)"
+        fi
+    else
+        print_warning "No test owner to cleanup"
+    fi
+    echo
+}
+
 # Test 1: Create a new cafe
 test_create_cafe() {
     print_step "Test 1: Create a new cafe"
     
+    if [[ -z "$OWNER_ID" ]]; then
+        print_error "No owner ID available. Cannot create cafe."
+        exit 1
+    fi
+    
     response=$(curl -s -X POST "$CAFES_ENDPOINT" \
         -H "Content-Type: application/json" \
         -d '{
+            "ownerId": "'$OWNER_ID'",
             "location": {
                 "lat": 37.123,
                 "lng": 127.456
@@ -164,9 +232,16 @@ test_update_cafe() {
         return
     fi
     
+    if [[ -z "$OWNER_ID" ]] || [[ -z "$ACCESS_TOKEN" ]]; then
+        print_error "No owner authentication available. Cannot update cafe."
+        return
+    fi
+    
     response=$(curl -s -X PUT "$CAFES_ENDPOINT/$CAFE_ID" \
         -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $ACCESS_TOKEN" \
         -d '{
+            "ownerId": "'$OWNER_ID'",
             "location": {
                 "lat": 37.124,
                 "lng": 127.457
@@ -220,9 +295,16 @@ test_update_cafe_seats_availability() {
         return
     fi
     
+    if [[ -z "$OWNER_ID" ]] || [[ -z "$ACCESS_TOKEN" ]]; then
+        print_error "No owner authentication available. Cannot update cafe seats."
+        return
+    fi
+    
     response=$(curl -s -X PUT "$CAFES_ENDPOINT/$CAFE_ID/seats-availability" \
         -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $ACCESS_TOKEN" \
         -d '{
+            "ownerId": "'$OWNER_ID'",
             "totalSeats": 70,
             "availableSeats": 50
         }')
@@ -267,6 +349,7 @@ test_error_invalid_request() {
     response=$(curl -s -X POST "$CAFES_ENDPOINT" \
         -H "Content-Type: application/json" \
         -d '{
+            "ownerId": "'$OWNER_ID'",
             "location": {
                 "lat": "invalid",
                 "lng": 127.456
@@ -303,6 +386,7 @@ test_validation_missing_fields() {
     response=$(curl -s -X POST "$CAFES_ENDPOINT" \
         -H "Content-Type: application/json" \
         -d '{
+            "ownerId": "'$OWNER_ID'",
             "location": {
                 "lat": 37.123
             },
@@ -333,6 +417,7 @@ test_validation_invalid_types() {
     response=$(curl -s -X POST "$CAFES_ENDPOINT" \
         -H "Content-Type: application/json" \
         -d '{
+            "ownerId": "'$OWNER_ID'",
             "location": {
                 "lat": "not_a_number",
                 "lng": "also_not_a_number"
@@ -372,6 +457,7 @@ test_validation_invalid_seats() {
     response=$(curl -s -X POST "$CAFES_ENDPOINT" \
         -H "Content-Type: application/json" \
         -d '{
+            "ownerId": "'$OWNER_ID'",
             "location": {
                 "lat": 37.123,
                 "lng": 127.456
@@ -407,6 +493,7 @@ test_validation_extra_fields() {
     response=$(curl -s -X POST "$CAFES_ENDPOINT" \
         -H "Content-Type: application/json" \
         -d '{
+            "ownerId": "'$OWNER_ID'",
             "location": {
                 "lat": 37.123,
                 "lng": 127.456
@@ -491,6 +578,7 @@ test_malformed_json() {
     response=$(curl -s -X POST "$CAFES_ENDPOINT" \
         -H "Content-Type: application/json" \
         -d '{
+            "ownerId": "'$OWNER_ID'",
             "location": {
                 "lat": 37.123,
                 "lng": 127.456
@@ -562,6 +650,10 @@ main() {
     check_server
     echo
     
+    # Setup: Create test owner for authentication
+    setup_test_owner
+    
+    # Run all tests
     test_create_cafe
     test_get_cafe_by_id
     test_get_nearby_cafes
@@ -578,6 +670,9 @@ main() {
     test_http_exception_not_found
     test_malformed_json
     test_delete_cafe
+    
+    # Cleanup: Delete test owner
+    cleanup_test_owner
     
     echo -e "${GREEN}🎉 All tests completed!${NC}"
     echo
