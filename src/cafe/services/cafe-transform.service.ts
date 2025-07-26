@@ -5,9 +5,10 @@ import {
   CafeSeatAvailabilityResponse,
 } from "../dto/cafe-response.dto";
 import { transformToInstance } from "../../common/utils/transform";
-import { Location, StoreInformation } from "../dto/cafe-common.dto";
+import { Location } from "../dto/cafe-common.dto";
 import { getISOString } from "../../common/utils/time";
 import { Cafe as CafeModel } from "../schemas/cafe.schema";
+import { CreateCafeRequest } from "../dto/cafe-request.dto";
 
 @Injectable()
 export class CafeTransformService {
@@ -15,9 +16,17 @@ export class CafeTransformService {
    * Transform CafeDocument to CafeFullResponse
    */
   toCafeFullResponse(doc: CafeDocument): CafeFullResponse {
+    const geoLocation = this.geoCoordinatesToLocation(doc.location);
+
     return transformToInstance(CafeFullResponse, {
-      ...doc.toObject(),
-      location: this.geoCoordinatesToLocation(doc.location),
+      id: doc.id,
+      name: doc.name,
+      lat: geoLocation.lat,
+      lng: geoLocation.lng,
+      totalSeats: doc.seatAvailability.totalSeats,
+      availableSeats: doc.seatAvailability.availableSeats,
+      lastUpdated: doc.seatAvailability.lastUpdated,
+      url: doc.url,
     });
   }
 
@@ -36,7 +45,9 @@ export class CafeTransformService {
   ): CafeSeatAvailabilityResponse {
     return transformToInstance(CafeSeatAvailabilityResponse, {
       id: doc.id,
-      seatAvailability: doc.seatAvailability,
+      totalSeats: doc.seatAvailability.totalSeats,
+      availableSeats: doc.seatAvailability.availableSeats,
+      lastUpdated: doc.seatAvailability.lastUpdated,
     });
   }
 
@@ -86,29 +97,18 @@ export class CafeTransformService {
   /**
    * Transform cafe data for creation
    */
-  transformCafeForCreation(data: {
-    id: string;
-    ownerId: string;
-    location: { lat: number; lng: number };
-    seatAvailability: { totalSeats: number; availableSeats: number };
-    storeInformation: StoreInformation;
-  }): CafeModel {
+  transformCafeForCreation(
+    data: CreateCafeRequest & { id: string }
+  ): CafeModel {
     return {
       id: data.id,
-      ownerId: data.ownerId,
-      location: this.locationToGeoCoordinates(data.location),
+      name: data.name,
+      location: this.locationToGeoCoordinates({ lat: data.lat, lng: data.lng }),
       seatAvailability: this.createSeatAvailabilityWithTimestamp(
-        data.seatAvailability.totalSeats,
-        data.seatAvailability.availableSeats
+        data.totalSeats,
+        0 // Initially no seats are available
       ),
-      storeInformation: {
-        ...data.storeInformation,
-        amenities: {
-          hasWifi: false,
-          hasOutlets: false,
-          noiseLevel: "moderate",
-        },
-      },
+      url: data.url,
     };
   }
 }

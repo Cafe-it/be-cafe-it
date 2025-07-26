@@ -38,7 +38,7 @@ export class CafeService {
 
     this.logger.log(
       `Found cafes=${result
-        .map((cafe) => `${cafe.id}:${cafe.location.lat},${cafe.location.lng}`)
+        .map((cafe) => `${cafe.id}:${cafe.lat},${cafe.lng}`)
         .join("; ")}`
     );
 
@@ -56,9 +56,7 @@ export class CafeService {
     const result = this.transformService.toCafeFullResponse(cafe);
 
     this.logger.log(
-      `Found cafe=${result.id}:${result.storeInformation?.name || "N/A"} at ${
-        result.location.lat
-      },${result.location.lng}`
+      `Found cafe=${result.id}:${result.name} at ${result.lat},${result.lng}`
     );
 
     return result;
@@ -77,7 +75,7 @@ export class CafeService {
     const result = this.transformService.toCafeSeatAvailabilityResponse(cafe);
 
     this.logger.log(
-      `Found seats for cafe=${result.id}: ${result.seatAvailability.availableSeats}/${result.seatAvailability.totalSeats} available`
+      `Found seats for cafe=${result.id}: ${result.availableSeats}/${result.totalSeats} available`
     );
 
     return result;
@@ -96,6 +94,9 @@ export class CafeService {
     const existingCafe = await this.cafeRepository.findById(cafeId);
     this.validationService.validateCafeExists(existingCafe, cafeId);
 
+    // Validate seat availability logic
+    this.validationService.validateSeatAvailability(totalSeats, availableSeats);
+
     const seatAvailability =
       this.transformService.createSeatAvailabilityWithTimestamp(
         totalSeats,
@@ -111,7 +112,7 @@ export class CafeService {
       this.transformService.toCafeSeatAvailabilityResponse(updatedCafe);
 
     this.logger.log(
-      `Updated seats for cafe=${result.id}: ${result.seatAvailability.availableSeats}/${result.seatAvailability.totalSeats} available`
+      `Updated seats for cafe=${result.id}: ${result.availableSeats}/${result.totalSeats} available`
     );
 
     return result;
@@ -120,25 +121,18 @@ export class CafeService {
   async createCafe(dto: CreateCafeRequest): Promise<CafeFullResponse> {
     this.logger.log(`createCafe, params=${JSON.stringify(dto)}`);
 
-    const { ownerId, location, seatAvailability, storeInformation } = dto;
-
     this.validationService.validateCreateCafeRequest(dto);
     const id = generateRandomId();
     const cafeData = this.transformService.transformCafeForCreation({
+      ...dto,
       id,
-      ownerId,
-      location,
-      seatAvailability,
-      storeInformation,
     });
 
     const createdCafe = await this.cafeRepository.create(cafeData);
     const result = this.transformService.toCafeFullResponse(createdCafe);
 
     this.logger.log(
-      `Created cafe=${result.id}:${result.storeInformation?.name || "N/A"} at ${
-        result.location.lat
-      },${result.location.lng}`
+      `Created cafe=${result.id}:${result.name} at ${result.lat},${result.lng}`
     );
 
     return result;
@@ -152,20 +146,15 @@ export class CafeService {
       `updateCafe, cafeId=${cafeId}, params=${JSON.stringify(dto)}`
     );
 
-    const { location, seatAvailability, storeInformation } = dto;
-
     this.validationService.validateUpdateCafeRequest(dto);
 
-    // Get existing cafe to preserve ownerId
+    // Get existing cafe to ensure it exists
     const existingCafe = await this.cafeRepository.findById(cafeId);
     this.validationService.validateCafeExists(existingCafe, cafeId);
 
     const cafeData = this.transformService.transformCafeForCreation({
+      ...dto,
       id: cafeId,
-      ownerId: existingCafe.ownerId,
-      location,
-      seatAvailability,
-      storeInformation,
     });
 
     const updatedCafe = await this.cafeRepository.update(cafeId, cafeData);
@@ -174,9 +163,7 @@ export class CafeService {
     const result = this.transformService.toCafeFullResponse(updatedCafe);
 
     this.logger.log(
-      `Updated cafe=${result.id}:${result.storeInformation?.name || "N/A"} at ${
-        result.location.lat
-      },${result.location.lng}`
+      `Updated cafe=${result.id}:${result.name} at ${result.lat},${result.lng}`
     );
 
     return result;

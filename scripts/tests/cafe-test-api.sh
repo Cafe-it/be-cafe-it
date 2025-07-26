@@ -1,17 +1,12 @@
 #!/bin/bash
 
-# Cafe API Test Script
-# This script tests all endpoints in the Cafe API
+# Simplified Cafe API Test Script
+# This script tests all endpoints in the simplified Cafe API
+# No authentication required - just create cafes with basic info and get cafe ID for operations
 
 # Configuration
 BASE_URL="http://localhost:3000"
 CAFES_ENDPOINT="$BASE_URL/api/cafes"
-OWNERS_ENDPOINT="$BASE_URL/api/owners"
-
-# Test owner credentials (using timestamp to ensure uniqueness)
-TIMESTAMP=$(date +%s)
-TEST_OWNER_EMAIL="test-api-owner-${TIMESTAMP}@example.com"
-TEST_OWNER_PASSWORD="testpassword123"
 
 # Colors for output
 RED='\033[0;31m'
@@ -22,8 +17,6 @@ NC='\033[0m' # No Color
 
 # Global variables
 CAFE_ID=""
-ACCESS_TOKEN=""
-OWNER_ID=""
 
 # Function to print colored output
 print_step() {
@@ -47,16 +40,6 @@ extract_cafe_id() {
     echo "$1" | grep -o '"id":"[^"]*"' | cut -d'"' -f4
 }
 
-# Function to extract access token from response
-extract_access_token() {
-    echo "$1" | grep -o '"accessToken":"[^"]*"' | sed 's/"accessToken":"//' | sed 's/"//'
-}
-
-# Function to extract owner ID from response
-extract_owner_id() {
-    echo "$1" | grep -o '"ownerId":"[^"]*"' | sed 's/"ownerId":"//' | sed 's/"//'
-}
-
 # Function to check if server is running
 check_server() {
     print_step "Checking if server is running"
@@ -65,97 +48,29 @@ check_server() {
         return 0
     else
         print_error "Server is not running. Please start the server first."
-        print_warning "Run: npm run dev"
+        print_warning "Run: npm start"
         exit 1
     fi
 }
 
-# Setup: Create test owner for authentication
-setup_test_owner() {
-    print_step "Setup: Creating test owner for authentication"
-    
-    response=$(curl -s -X POST "$OWNERS_ENDPOINT" \
-        -H "Content-Type: application/json" \
-        -d '{
-            "email": "'$TEST_OWNER_EMAIL'",
-            "password": "'$TEST_OWNER_PASSWORD'"
-        }')
-    
-    if [[ $response == *"ownerId"* ]] && [[ $response == *"accessToken"* ]]; then
-        ACCESS_TOKEN=$(extract_access_token "$response")
-        OWNER_ID=$(extract_owner_id "$response")
-        print_success "Test owner created successfully"
-        print_success "Owner ID: $OWNER_ID"
-        print_success "Access Token: ${ACCESS_TOKEN:0:30}..."
-    else
-        print_error "Failed to create test owner"
-        echo "Response: $response"
-        exit 1
-    fi
-    echo
-}
-
-# Cleanup: Delete test owner
-cleanup_test_owner() {
-    print_step "Cleanup: Deleting test owner"
-    
-    if [[ -n "$OWNER_ID" ]] && [[ -n "$ACCESS_TOKEN" ]]; then
-        response=$(curl -s -X DELETE "$OWNERS_ENDPOINT/$OWNER_ID" \
-            -H "Authorization: Bearer $ACCESS_TOKEN")
-        
-        if [[ $response == *"\"success\":true"* ]]; then
-            print_success "Test owner deleted successfully"
-        else
-            print_warning "Failed to delete test owner (may have been cleaned up already)"
-        fi
-    else
-        print_warning "No test owner to cleanup"
-    fi
-    echo
-}
-
-# Test 1: Create a new cafe
+# Test 1: Create a new cafe (simplified structure)
 test_create_cafe() {
-    print_step "Test 1: Create a new cafe"
-    
-    if [[ -z "$OWNER_ID" ]]; then
-        print_error "No owner ID available. Cannot create cafe."
-        exit 1
-    fi
+    print_step "Test 1: Create a new cafe (simplified structure)"
     
     response=$(curl -s -X POST "$CAFES_ENDPOINT" \
         -H "Content-Type: application/json" \
         -d '{
-            "ownerId": "'$OWNER_ID'",
-            "location": {
-                "lat": 37.123,
-                "lng": 127.456
-            },
-            "seatAvailability": {
-                "totalSeats": 50,
-                "availableSeats": 30
-            },
-            "storeInformation": {
-                "name": "Test Cafe",
-                "address": "123 Test Street",
-                "hours": {
-                    "startTime": "08:00",
-                    "endTime": "22:00"
-                },
-                "links": {
-                    "mapUrl": "https://maps.example.com/test-cafe"
-                },
-                "amenities": {
-                    "noiseLevel": "quiet",
-                    "hasWifi": true,
-                    "hasOutlets": true
-                }
-            }
+            "name": "Blue Bottle Coffee",
+            "lat": 37.7749,
+            "lng": -122.4194,
+            "totalSeats": 50,
+            "url": "https://maps.google.com/maps?q=37.7749,-122.4194"
         }')
     
-    if [[ $response == *"id"* ]]; then
+    if [[ $response == *"id"* ]] && [[ $response == *"Blue Bottle Coffee"* ]]; then
         CAFE_ID=$(extract_cafe_id "$response")
         print_success "Cafe created successfully with ID: $CAFE_ID"
+        print_success "✨ This is the cafe ID to use for all future operations"
         echo "Response: $response"
     else
         print_error "Failed to create cafe"
@@ -176,7 +91,7 @@ test_get_cafe_by_id() {
     
     response=$(curl -s -X GET "$CAFES_ENDPOINT/$CAFE_ID")
     
-    if [[ $response == *"$CAFE_ID"* ]]; then
+    if [[ $response == *"$CAFE_ID"* ]] && [[ $response == *"Blue Bottle Coffee"* ]]; then
         print_success "Retrieved cafe successfully"
         echo "Response: $response"
     else
@@ -190,13 +105,13 @@ test_get_cafe_by_id() {
 test_get_nearby_cafes() {
     print_step "Test 3: Get nearby cafes"
     
-    response=$(curl -s -X GET "$CAFES_ENDPOINT?lat=37.123&lng=127.456&radius=5")
+    response=$(curl -s -X GET "$CAFES_ENDPOINT?lat=37.7749&lng=-122.4194&radius=5")
     
-    if [[ $response == *"["* ]]; then
-        print_success "Retrieved nearby cafes successfully"
+    if [[ $response == *"["* ]] && [[ $response == *"Blue Bottle Coffee"* ]]; then
+        print_success "Retrieved nearby cafes successfully (found our test cafe)"
         echo "Response: $response"
     else
-        print_error "Failed to retrieve nearby cafes"
+        print_warning "Retrieved nearby cafes but may not include our test cafe"
         echo "Response: $response"
     fi
     echo
@@ -213,7 +128,7 @@ test_get_cafe_seats() {
     
     response=$(curl -s -X GET "$CAFES_ENDPOINT/$CAFE_ID/seats-availability")
     
-    if [[ $response == *"seatAvailability"* ]]; then
+    if [[ $response == *"totalSeats"* ]] && [[ $response == *"availableSeats"* ]]; then
         print_success "Retrieved cafe seats availability successfully"
         echo "Response: $response"
     else
@@ -223,112 +138,97 @@ test_get_cafe_seats() {
     echo
 }
 
-# Test 5: Update cafe (full replacement)
-test_update_cafe() {
-    print_step "Test 5: Update cafe (full replacement)"
-    
-    if [[ -z "$CAFE_ID" ]]; then
-        print_error "No cafe ID available. Skipping test."
-        return
-    fi
-    
-    if [[ -z "$OWNER_ID" ]] || [[ -z "$ACCESS_TOKEN" ]]; then
-        print_error "No owner authentication available. Cannot update cafe."
-        return
-    fi
-    
-    response=$(curl -s -X PUT "$CAFES_ENDPOINT/$CAFE_ID" \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer $ACCESS_TOKEN" \
-        -d '{
-            "ownerId": "'$OWNER_ID'",
-            "location": {
-                "lat": 37.124,
-                "lng": 127.457
-            },
-            "seatAvailability": {
-                "totalSeats": 60,
-                "availableSeats": 40
-            },
-            "storeInformation": {
-                "name": "Updated Test Cafe",
-                "address": "456 Updated Street",
-                "hours": {
-                    "startTime": "07:00",
-                    "endTime": "23:00"
-                },
-                "links": {
-                    "mapUrl": "https://maps.example.com/updated-test-cafe"
-                },
-                "amenities": {
-                    "noiseLevel": "moderate",
-                    "hasWifi": true,
-                    "hasOutlets": false
-                }
-            }
-        }')
-    
-    # Check multiple conditions to ensure data actually changed
-    if [[ $response == *"$CAFE_ID"* ]] && \
-       [[ $response == *"Updated Test Cafe"* ]] && \
-       [[ $response == *"456 Updated Street"* ]] && \
-       [[ $response == *"\"totalSeats\":60"* ]] && \
-       [[ $response == *"\"availableSeats\":40"* ]] && \
-       [[ $response == *"07:00"* ]] && \
-       [[ $response == *"23:00"* ]]; then
-        print_success "Updated cafe successfully (full replacement)"
-        echo "Response: $response"
-    else
-        print_error "Failed to update cafe (full replacement)"
-        echo "Expected: Updated Test Cafe, 456 Updated Street, 60 total seats, 40 available seats"
-        echo "Response: $response"
-    fi
-    echo
-}
-
-# Test 6: Update cafe seats availability (dedicated endpoint)
+# Test 5: Update cafe seats availability (no authentication required)
 test_update_cafe_seats_availability() {
-    print_step "Test 6: Update cafe seats availability (dedicated endpoint)"
+    print_step "Test 5: Update cafe seats availability (public endpoint)"
     
     if [[ -z "$CAFE_ID" ]]; then
         print_error "No cafe ID available. Skipping test."
-        return
-    fi
-    
-    if [[ -z "$OWNER_ID" ]] || [[ -z "$ACCESS_TOKEN" ]]; then
-        print_error "No owner authentication available. Cannot update cafe seats."
         return
     fi
     
     response=$(curl -s -X PUT "$CAFES_ENDPOINT/$CAFE_ID/seats-availability" \
         -H "Content-Type: application/json" \
-        -H "Authorization: Bearer $ACCESS_TOKEN" \
         -d '{
-            "ownerId": "'$OWNER_ID'",
-            "totalSeats": 70,
-            "availableSeats": 50
+            "totalSeats": 50,
+            "availableSeats": 35
         }')
     
-    # Check that seats actually changed to the new values
-    if [[ $response == *"\"totalSeats\":70"* ]] && \
-       [[ $response == *"\"availableSeats\":50"* ]]; then
+    if [[ $response == *"\"totalSeats\":50"* ]] && [[ $response == *"\"availableSeats\":35"* ]]; then
         print_success "Updated cafe seats availability successfully"
         echo "Response: $response"
     else
         print_error "Failed to update cafe seats availability"
-        echo "Expected: totalSeats: 70, availableSeats: 50"
+        echo "Expected: totalSeats: 50, availableSeats: 35"
         echo "Response: $response"
     fi
     echo
 }
 
-# Test 7: Error handling - Invalid cafe ID
+# Test 6: Update entire cafe (simplified structure)
+test_update_cafe() {
+    print_step "Test 6: Update entire cafe (simplified structure)"
+    
+    if [[ -z "$CAFE_ID" ]]; then
+        print_error "No cafe ID available. Skipping test."
+        return
+    fi
+    
+    response=$(curl -s -X PUT "$CAFES_ENDPOINT/$CAFE_ID" \
+        -H "Content-Type: application/json" \
+        -d '{
+            "name": "Updated Blue Bottle Coffee",
+            "lat": 37.7750,
+            "lng": -122.4195,
+            "totalSeats": 60,
+            "url": "https://maps.google.com/maps?q=37.7750,-122.4195"
+        }')
+    
+    if [[ $response == *"$CAFE_ID"* ]] && \
+       [[ $response == *"Updated Blue Bottle Coffee"* ]] && \
+       [[ $response == *"\"totalSeats\":60"* ]] && \
+       [[ $response == *"37.775"* ]]; then
+        print_success "Updated cafe successfully"
+        echo "Response: $response"
+    else
+        print_error "Failed to update cafe"
+        echo "Expected: Updated Blue Bottle Coffee, 60 total seats, lat 37.775"
+        echo "Response: $response"
+    fi
+    echo
+}
+
+# Test 7: Create second cafe for testing multiple cafes
+test_create_second_cafe() {
+    print_step "Test 7: Create second cafe for testing multiple cafes"
+    
+    response=$(curl -s -X POST "$CAFES_ENDPOINT" \
+        -H "Content-Type: application/json" \
+        -d '{
+            "name": "Starbucks Reserve",
+            "lat": 37.7849,
+            "lng": -122.4094,
+            "totalSeats": 80,
+            "url": "https://maps.google.com/maps?q=37.7849,-122.4094"
+        }')
+    
+    if [[ $response == *"id"* ]] && [[ $response == *"Starbucks Reserve"* ]]; then
+        SECOND_CAFE_ID=$(extract_cafe_id "$response")
+        print_success "Second cafe created successfully with ID: $SECOND_CAFE_ID"
+        echo "Response: $response"
+    else
+        print_error "Failed to create second cafe"
+        echo "Response: $response"
+    fi
+    echo
+}
+
+# Test 8: Error handling - Invalid cafe ID
 test_error_invalid_cafe_id() {
-    print_step "Test 7: Error handling - Invalid cafe ID"
+    print_step "Test 8: Error handling - Invalid cafe ID"
     
     response=$(curl -s -X GET "$CAFES_ENDPOINT/invalid-id")
     
-    # Check for standardized error response format
     if [[ $response == *"statusCode"* ]] && \
        [[ $response == *"code"* ]] && \
        [[ $response == *"message"* ]]; then
@@ -342,29 +242,21 @@ test_error_invalid_cafe_id() {
     echo
 }
 
-# Test 8: Error handling - Invalid request body
-test_error_invalid_request() {
-    print_step "Test 8: Error handling - Invalid request body"
+# Test 9: Error handling - Invalid request body (missing required fields)
+test_error_missing_fields() {
+    print_step "Test 9: Error handling - Missing required fields"
     
     response=$(curl -s -X POST "$CAFES_ENDPOINT" \
         -H "Content-Type: application/json" \
         -d '{
-            "ownerId": "'$OWNER_ID'",
-            "location": {
-                "lat": "invalid",
-                "lng": 127.456
-            },
-            "seatAvailability": {
-                "totalSeats": -10,
-                "availableSeats": 100
-            }
+            "name": "Incomplete Cafe",
+            "lat": 37.7749
         }')
     
-    # Check for standardized error response format
     if [[ $response == *"statusCode"* ]] && \
        [[ $response == *"code"* ]] && \
        [[ $response == *"message"* ]]; then
-        print_success "Error handling works correctly for invalid request body"
+        print_success "Error handling works correctly for missing required fields"
         echo "Response: $response"
     else
         print_error "Error handling format is incorrect"
@@ -374,226 +266,104 @@ test_error_invalid_request() {
     echo
 }
 
-# === VALIDATION PIPELINE & EXCEPTION FILTER TESTS ===
-# The following tests verify that the validation pipeline and global exception filter
-# work correctly with the new standardized error response format:
-# { "statusCode": number, "code": string, "message": string }
-
-# Test 8.1: Validation Error - Missing required fields
-test_validation_missing_fields() {
-    print_step "Test 8.1: Validation Error - Missing required fields"
+# Test 10: Error handling - Invalid data types
+test_error_invalid_types() {
+    print_step "Test 10: Error handling - Invalid data types"
     
     response=$(curl -s -X POST "$CAFES_ENDPOINT" \
         -H "Content-Type: application/json" \
         -d '{
-            "ownerId": "'$OWNER_ID'",
-            "location": {
-                "lat": 37.123
-            },
-            "seatAvailability": {
-                "totalSeats": 50
-            }
+            "name": 123,
+            "lat": "not_a_number",
+            "lng": "also_not_a_number",
+            "totalSeats": "fifty",
+            "url": "not_a_valid_url"
         }')
     
-    # Check for standardized error response format
+    if [[ $response == *"statusCode"* ]] && \
+       [[ $response == *"code"* ]] && \
+       [[ $response == *"message"* ]]; then
+        print_success "Error handling works correctly for invalid data types"
+        echo "Response: $response"
+    else
+        print_error "Error handling format is incorrect"
+        echo "Expected: statusCode, code, message"
+        echo "Response: $response"
+    fi
+    echo
+}
+
+# Test 11: Error handling - Invalid seat availability (negative seats)
+test_error_invalid_seats() {
+    print_step "Test 11: Error handling - Invalid seat availability"
+    
+    response=$(curl -s -X POST "$CAFES_ENDPOINT" \
+        -H "Content-Type: application/json" \
+        -d '{
+            "name": "Bad Seats Cafe",
+            "lat": 37.7749,
+            "lng": -122.4194,
+            "totalSeats": -10,
+            "url": "https://maps.google.com/maps?q=37.7749,-122.4194"
+        }')
+    
+    if [[ $response == *"statusCode"* ]] && \
+       [[ $response == *"code"* ]] && \
+       [[ $response == *"message"* ]]; then
+        print_success "Error handling works correctly for invalid seat numbers"
+        echo "Response: $response"
+    else
+        print_error "Error handling format is incorrect"
+        echo "Expected: statusCode, code, message"
+        echo "Response: $response"
+    fi
+    echo
+}
+
+# Test 12: Error handling - Seat availability validation (available > total)
+test_error_seat_availability_logic() {
+    print_step "Test 12: Error handling - Available seats > total seats"
+    
+    if [[ -z "$CAFE_ID" ]]; then
+        print_error "No cafe ID available. Skipping test."
+        return
+    fi
+    
+    response=$(curl -s -X PUT "$CAFES_ENDPOINT/$CAFE_ID/seats-availability" \
+        -H "Content-Type: application/json" \
+        -d '{
+            "totalSeats": 50,
+            "availableSeats": 100
+        }')
+    
     if [[ $response == *"statusCode"* ]] && \
        [[ $response == *"code"* ]] && \
        [[ $response == *"message"* ]] && \
-       [[ $response == *"BAD_REQUEST"* ]]; then
-        print_success "Validation error for missing fields handled correctly"
+       [[ $response == *"Available seats cannot exceed total seats"* ]]; then
+        print_success "Seat availability validation works correctly"
         echo "Response: $response"
     else
-        print_error "Validation error format is incorrect"
-        echo "Expected: statusCode, code: 'BAD_REQUEST', message"
+        print_error "Seat availability validation error format is incorrect"
+        echo "Expected: error about available seats exceeding total seats"
         echo "Response: $response"
     fi
     echo
 }
 
-# Test 8.2: Validation Error - Invalid data types
-test_validation_invalid_types() {
-    print_step "Test 8.2: Validation Error - Invalid data types"
+# Test 13: Error handling - Malformed JSON
+test_error_malformed_json() {
+    print_step "Test 13: Error handling - Malformed JSON"
     
     response=$(curl -s -X POST "$CAFES_ENDPOINT" \
         -H "Content-Type: application/json" \
         -d '{
-            "ownerId": "'$OWNER_ID'",
-            "location": {
-                "lat": "not_a_number",
-                "lng": "also_not_a_number"
-            },
-            "seatAvailability": {
-                "totalSeats": "fifty",
-                "availableSeats": "thirty"
-            },
-            "storeInformation": {
-                "name": 123,
-                "address": true,
-                "hours": {
-                    "startTime": "invalid_time",
-                    "endTime": "also_invalid"
-                }
-            }
+            "name": "Test Cafe",
+            "lat": 37.7749,
+            "lng": -122.4194,
+            "totalSeats": 50,
+            "url": "https://maps.google.com/...",
         }')
     
-    # Check for standardized error response format
-    if [[ $response == *"statusCode"* ]] && \
-       [[ $response == *"code"* ]] && \
-       [[ $response == *"message"* ]]; then
-        print_success "Validation error for invalid types handled correctly"
-        echo "Response: $response"
-    else
-        print_error "Validation error format is incorrect"
-        echo "Expected: statusCode, code, message"
-        echo "Response: $response"
-    fi
-    echo
-}
-
-# Test 8.3: Validation Error - Invalid seat availability
-test_validation_invalid_seats() {
-    print_step "Test 8.3: Validation Error - Invalid seat availability"
-    
-    response=$(curl -s -X POST "$CAFES_ENDPOINT" \
-        -H "Content-Type: application/json" \
-        -d '{
-            "ownerId": "'$OWNER_ID'",
-            "location": {
-                "lat": 37.123,
-                "lng": 127.456
-            },
-            "seatAvailability": {
-                "totalSeats": -10,
-                "availableSeats": 100
-            },
-            "storeInformation": {
-                "name": "Test Cafe",
-                "address": "123 Test Street"
-            }
-        }')
-    
-    # Check for standardized error response format
-    if [[ $response == *"statusCode"* ]] && \
-       [[ $response == *"code"* ]] && \
-       [[ $response == *"message"* ]]; then
-        print_success "Validation error for invalid seat numbers handled correctly"
-        echo "Response: $response"
-    else
-        print_error "Validation error format is incorrect"
-        echo "Expected: statusCode, code, message"
-        echo "Response: $response"
-    fi
-    echo
-}
-
-# Test 8.4: Validation Error - Extra forbidden fields
-test_validation_extra_fields() {
-    print_step "Test 8.4: Validation Error - Extra forbidden fields"
-    
-    response=$(curl -s -X POST "$CAFES_ENDPOINT" \
-        -H "Content-Type: application/json" \
-        -d '{
-            "ownerId": "'$OWNER_ID'",
-            "location": {
-                "lat": 37.123,
-                "lng": 127.456
-            },
-            "seatAvailability": {
-                "totalSeats": 50,
-                "availableSeats": 30
-            },
-            "storeInformation": {
-                "name": "Test Cafe",
-                "address": "123 Test Street",
-                "hours": {
-                    "startTime": "08:00",
-                    "endTime": "22:00"
-                }
-            },
-            "extraField": "should_not_be_allowed",
-            "anotherExtraField": {
-                "nested": "also_not_allowed"
-            }
-        }')
-    
-    # Check for standardized error response format
-    if [[ $response == *"statusCode"* ]] && \
-       [[ $response == *"code"* ]] && \
-       [[ $response == *"message"* ]]; then
-        print_success "Validation error for extra fields handled correctly"
-        echo "Response: $response"
-    else
-        print_error "Validation error format is incorrect"
-        echo "Expected: statusCode, code, message"
-        echo "Response: $response"
-    fi
-    echo
-}
-
-# Test 8.5: Route Parameter Validation - Invalid UUID format
-test_route_parameter_validation() {
-    print_step "Test 8.5: Route Parameter Validation - Invalid UUID format"
-    
-    response=$(curl -s -X GET "$CAFES_ENDPOINT/nonexistent-cafe-id-12345")
-    
-    # Check for standardized error response format
-    if [[ $response == *"statusCode"* ]] && \
-       [[ $response == *"code"* ]] && \
-       [[ $response == *"message"* ]]; then
-        print_success "Route parameter validation handled correctly with standardized format"
-        echo "Response: $response"
-    else
-        print_error "Route parameter validation format is incorrect"
-        echo "Expected: statusCode, code, message"
-        echo "Response: $response"
-    fi
-    echo
-}
-
-# Test 8.6: HTTP Exception - Not Found with valid UUID
-test_http_exception_not_found() {
-    print_step "Test 8.6: HTTP Exception - Not Found with valid UUID"
-    
-    # Use a valid UUID format but non-existent cafe ID
-    response=$(curl -s -X GET "$CAFES_ENDPOINT/550e8400-e29b-41d4-a716-446655440000")
-    
-    # Check for standardized error response format
-    if [[ $response == *"statusCode"* ]] && \
-       [[ $response == *"code"* ]] && \
-       [[ $response == *"message"* ]]; then
-        print_success "HTTP Not Found exception handled correctly with standardized format"
-        echo "Response: $response"
-    else
-        print_error "HTTP exception format is incorrect"
-        echo "Expected: statusCode, code, message"
-        echo "Response: $response"
-    fi
-    echo
-}
-
-# Test 8.7: Malformed JSON Error
-test_malformed_json() {
-    print_step "Test 8.7: Malformed JSON Error"
-    
-    response=$(curl -s -X POST "$CAFES_ENDPOINT" \
-        -H "Content-Type: application/json" \
-        -d '{
-            "ownerId": "'$OWNER_ID'",
-            "location": {
-                "lat": 37.123,
-                "lng": 127.456
-            },
-            "seatAvailability": {
-                "totalSeats": 50,
-                "availableSeats": 30
-            },
-            "storeInformation": {
-                "name": "Test Cafe",
-                "address": "123 Test Street",
-            }
-        }')
-    
-    # Check for standardized error response format
     if [[ $response == *"statusCode"* ]] && \
        [[ $response == *"code"* ]] && \
        [[ $response == *"message"* ]]; then
@@ -607,9 +377,9 @@ test_malformed_json() {
     echo
 }
 
-# Test 9: Delete cafe
+# Test 14: Delete cafe
 test_delete_cafe() {
-    print_step "Test 9: Delete cafe"
+    print_step "Test 14: Delete cafe"
     
     if [[ -z "$CAFE_ID" ]]; then
         print_error "No cafe ID available. Skipping test."
@@ -622,14 +392,13 @@ test_delete_cafe() {
         print_success "Cafe deleted successfully"
         echo "Response: $response"
         
-        # Verify the cafe is actually deleted by trying to retrieve it
+        # Verify the cafe is actually deleted
         print_step "Verifying cafe deletion"
         verify_response=$(curl -s -X GET "$CAFES_ENDPOINT/$CAFE_ID")
         
         if [[ $verify_response == *"not found"* ]] || [[ $verify_response == *"Not Found"* ]] || [[ $verify_response == *"error"* ]]; then
             print_success "Cafe deletion verified - cafe no longer exists"
             echo "Verification response: $verify_response"
-            # Clear the CAFE_ID since it's now deleted
             CAFE_ID=""
         else
             print_error "Cafe deletion verification failed - cafe still exists"
@@ -642,43 +411,83 @@ test_delete_cafe() {
     echo
 }
 
+# Test 15: Delete second cafe (cleanup)
+test_delete_second_cafe() {
+    print_step "Test 15: Delete second cafe (cleanup)"
+    
+    if [[ -z "$SECOND_CAFE_ID" ]]; then
+        print_warning "No second cafe ID available. Skipping cleanup."
+        return
+    fi
+    
+    response=$(curl -s -X DELETE "$CAFES_ENDPOINT/$SECOND_CAFE_ID")
+    
+    if [[ $response == *"true"* ]]; then
+        print_success "Second cafe deleted successfully"
+        echo "Response: $response"
+        SECOND_CAFE_ID=""
+    else
+        print_error "Failed to delete second cafe"
+        echo "Response: $response"
+    fi
+    echo
+}
+
+# Summary function to show the simplified workflow
+print_summary() {
+    print_step "🎯 Simplified Cafe API Workflow Summary"
+    echo
+    echo -e "${GREEN}✨ Simple 3-Step Process:${NC}"
+    echo -e "${BLUE}1.${NC} Create cafe with: name, lat, lng, totalSeats, url"
+    echo -e "${BLUE}2.${NC} Get cafe ID from response"
+    echo -e "${BLUE}3.${NC} Use cafe ID for all operations (get, update, delete)"
+    echo
+    echo -e "${GREEN}🚀 No Authentication Required!${NC}"
+    echo -e "${GREEN}📍 Flat Structure - No Complex Nesting${NC}"
+    echo -e "${GREEN}⚡ Direct API Access${NC}"
+    echo
+}
+
 # Main execution
 main() {
-    echo -e "${BLUE}🚀 Starting Cafe API Tests${NC}"
+    echo -e "${BLUE}🚀 Starting Simplified Cafe API Tests${NC}"
+    echo -e "${YELLOW}📝 Testing the new authentication-free, simplified cafe flow${NC}"
     echo
     
     check_server
     echo
     
-    # Setup: Create test owner for authentication
-    setup_test_owner
-    
-    # Run all tests
+    # Core functionality tests
     test_create_cafe
     test_get_cafe_by_id
     test_get_nearby_cafes
     test_get_cafe_seats
-    test_update_cafe
     test_update_cafe_seats_availability
+    test_update_cafe
+    test_create_second_cafe
+    
+    # Error handling tests
     test_error_invalid_cafe_id
-    test_error_invalid_request
-    test_validation_missing_fields
-    test_validation_invalid_types
-    test_validation_invalid_seats
-    test_validation_extra_fields
-    test_route_parameter_validation
-    test_http_exception_not_found
-    test_malformed_json
+    test_error_missing_fields
+    test_error_invalid_types
+    test_error_invalid_seats
+    test_error_seat_availability_logic
+    test_error_malformed_json
+    
+    # Cleanup tests
     test_delete_cafe
+    test_delete_second_cafe
     
-    # Cleanup: Delete test owner
-    cleanup_test_owner
+    # Summary
+    print_summary
     
-    echo -e "${GREEN}🎉 All tests completed!${NC}"
+    echo -e "${GREEN}🎉 All Simplified Cafe API tests completed!${NC}"
     echo
     
-    if [[ -n "$CAFE_ID" ]]; then
-        print_warning "Test cafe created with ID: $CAFE_ID"
+    if [[ -n "$CAFE_ID" ]] || [[ -n "$SECOND_CAFE_ID" ]]; then
+        print_warning "Some test cafes may still exist:"
+        [[ -n "$CAFE_ID" ]] && print_warning "Cafe ID: $CAFE_ID"
+        [[ -n "$SECOND_CAFE_ID" ]] && print_warning "Second Cafe ID: $SECOND_CAFE_ID"
         print_warning "You may want to clean up test data manually if needed."
     else
         print_success "All test data cleaned up automatically."

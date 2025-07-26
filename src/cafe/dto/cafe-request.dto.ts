@@ -1,16 +1,12 @@
-import { Type } from "class-transformer";
-import { ValidateNested } from "class-validator";
-import {
-  Location,
-  CafeId,
-  StoreInformation,
-  SeatAvailability,
-} from "./cafe-common.dto";
 import {
   RadiusProperty,
-  OwnerIdProperty,
-  NestedProperty,
+  StringProperty,
+  UrlProperty,
+  LatitudeProperty,
+  LongitudeProperty,
+  SeatCountProperty,
 } from "../../common/decorators/property.decorators";
+import { Location, CafeId, SeatAvailability } from "./cafe-common.dto";
 
 export class GetNearbyCafesRequest extends Location {
   @RadiusProperty()
@@ -21,33 +17,32 @@ export class GetCafeByIdRequest extends CafeId {}
 export class GetCafeSeatsByIdRequest extends CafeId {}
 
 export class CreateCafeRequest {
-  @OwnerIdProperty()
-  ownerId: string;
-
-  @NestedProperty(Location, {
-    description: "Geographic location of the cafe",
+  @StringProperty({
+    description: "Name of the cafe",
+    example: "Blue Bottle Coffee",
   })
-  location: Location;
+  name: string;
 
-  @NestedProperty(SeatAvailability, {
-    description: "Current seat availability information",
-  })
-  seatAvailability: SeatAvailability;
+  @LatitudeProperty()
+  lat: number;
 
-  @NestedProperty(StoreInformation, {
-    description: "Store information including name, address, and hours",
+  @LongitudeProperty()
+  lng: number;
+
+  @SeatCountProperty({
+    description: "Total number of seats in the cafe",
   })
-  storeInformation: StoreInformation;
+  totalSeats: number;
+
+  @UrlProperty({
+    description: "Map URL for the cafe location",
+    example: "https://maps.google.com/maps?q=37.7749,-122.4194",
+  })
+  url: string;
 }
 
 // Dedicated seat availability update request
-export class UpdateCafeSeatAvailabilityRequest extends SeatAvailability {
-  @OwnerIdProperty({
-    description:
-      "Unique identifier of the cafe owner (must match the cafe's owner)",
-  })
-  ownerId: string;
-}
+export class UpdateCafeSeatAvailabilityRequest extends SeatAvailability {}
 
 // Single flexible update request - cafeId comes from URL params, not body
 export class UpdateCafeRequest extends CreateCafeRequest {}

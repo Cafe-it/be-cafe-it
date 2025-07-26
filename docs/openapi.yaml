@@ -60,7 +60,7 @@ paths:
       tags:
         - cafes
     post:
-      description: Create a new cafe with location, seat availability, and store information
+      description: 'Create a new cafe with basic information: name, location, seats, and URL'
       operationId: CafeController_createCafe
       parameters: []
       requestBody:
@@ -92,24 +92,6 @@ paths:
                   message:
                     type: string
                     example: Invalid request data
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 401
-                  code:
-                    type: string
-                    example: UNAUTHORIZED
-                  message:
-                    type: string
-                    example: Unauthorized - invalid or missing JWT token
-      security:
-        - JWT-auth: []
       summary: Create a new cafe
       tags:
         - cafes
@@ -153,7 +135,7 @@ paths:
       tags:
         - cafes
     put:
-      description: Update cafe information including location, seats, and store details (owner only)
+      description: Update cafe information
       operationId: CafeController_updateCafe
       parameters:
         - name: cafeId
@@ -193,38 +175,6 @@ paths:
                   message:
                     type: string
                     example: Invalid request data
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 401
-                  code:
-                    type: string
-                    example: UNAUTHORIZED
-                  message:
-                    type: string
-                    example: Unauthorized - invalid or missing JWT token
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 403
-                  code:
-                    type: string
-                    example: FORBIDDEN
-                  message:
-                    type: string
-                    example: Forbidden - not the resource owner
         '404':
           description: Resource not found
           content:
@@ -241,8 +191,6 @@ paths:
                   message:
                     type: string
                     example: Resource not found
-      security:
-        - JWT-auth: []
       summary: Update cafe
       tags:
         - cafes
@@ -342,7 +290,7 @@ paths:
       tags:
         - cafes
     put:
-      description: Update the current seat availability for a cafe (owner only)
+      description: Update the available and total seat count for a cafe
       operationId: CafeController_updateCafeSeatsById
       parameters:
         - name: cafeId
@@ -361,7 +309,7 @@ paths:
               $ref: '#/components/schemas/UpdateCafeSeatAvailabilityRequest'
       responses:
         '200':
-          description: Successfully updated seat availability
+          description: Successfully updated cafe seat availability
           content:
             application/json:
               schema:
@@ -382,38 +330,6 @@ paths:
                   message:
                     type: string
                     example: Invalid request data
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 401
-                  code:
-                    type: string
-                    example: UNAUTHORIZED
-                  message:
-                    type: string
-                    example: Unauthorized - invalid or missing JWT token
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 403
-                  code:
-                    type: string
-                    example: FORBIDDEN
-                  message:
-                    type: string
-                    example: Forbidden - not the resource owner
         '404':
           description: Resource not found
           content:
@@ -430,329 +346,9 @@ paths:
                   message:
                     type: string
                     example: Resource not found
-      security:
-        - JWT-auth: []
       summary: Update cafe seat availability
       tags:
         - cafes
-  /api/auth/refresh:
-    post:
-      description: Generate a new access token using a valid refresh token
-      operationId: AuthController_refreshToken
-      parameters: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshTokenRequest'
-      responses:
-        '200':
-          description: Token refreshed successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RefreshTokenResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 401
-                  code:
-                    type: string
-                    example: UNAUTHORIZED
-                  message:
-                    type: string
-                    example: Unauthorized - invalid or missing JWT token
-      summary: Refresh access token
-      tags:
-        - auth
-  /api/owners/{ownerId}:
-    get:
-      description: Retrieve owner information and associated cafes
-      operationId: OwnerController_getOwnerById
-      parameters:
-        - name: ownerId
-          required: true
-          in: path
-          description: Owner UUID
-          schema:
-            format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440001
-            type: string
-      responses:
-        '200':
-          description: Owner found successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetOwnerByIdResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 401
-                  code:
-                    type: string
-                    example: UNAUTHORIZED
-                  message:
-                    type: string
-                    example: Unauthorized - invalid or missing JWT token
-        '404':
-          description: Resource not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 404
-                  code:
-                    type: string
-                    example: NOT_FOUND
-                  message:
-                    type: string
-                    example: Resource not found
-      security:
-        - JWT-auth: []
-      summary: Get owner by ID
-      tags:
-        - owners
-    put:
-      description: Update owner information and associated cafes
-      operationId: OwnerController_updateOwner
-      parameters:
-        - name: ownerId
-          required: true
-          in: path
-          description: Owner UUID
-          schema:
-            format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440001
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateOwnerRequest'
-      responses:
-        '200':
-          description: Owner updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OwnerResponseWithTokens'
-        '400':
-          description: Bad request - validation error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 400
-                  code:
-                    type: string
-                    example: BAD_REQUEST
-                  message:
-                    type: string
-                    example: Invalid request data
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 401
-                  code:
-                    type: string
-                    example: UNAUTHORIZED
-                  message:
-                    type: string
-                    example: Unauthorized - invalid or missing JWT token
-        '404':
-          description: Resource not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 404
-                  code:
-                    type: string
-                    example: NOT_FOUND
-                  message:
-                    type: string
-                    example: Resource not found
-      security:
-        - JWT-auth: []
-      summary: Update owner
-      tags:
-        - owners
-    delete:
-      description: Delete owner account and associated data
-      operationId: OwnerController_deleteOwner
-      parameters:
-        - name: ownerId
-          required: true
-          in: path
-          description: Owner UUID
-          schema:
-            format: uuid
-            example: 550e8400-e29b-41d4-a716-446655440001
-            type: string
-      responses:
-        '200':
-          description: Owner deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeleteOwnerResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 401
-                  code:
-                    type: string
-                    example: UNAUTHORIZED
-                  message:
-                    type: string
-                    example: Unauthorized - invalid or missing JWT token
-        '404':
-          description: Resource not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 404
-                  code:
-                    type: string
-                    example: NOT_FOUND
-                  message:
-                    type: string
-                    example: Resource not found
-      security:
-        - JWT-auth: []
-      summary: Delete owner
-      tags:
-        - owners
-  /api/owners:
-    post:
-      description: Register a new cafe owner account
-      operationId: OwnerController_createOwner
-      parameters: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateOwnerRequest'
-      responses:
-        '201':
-          description: Owner created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateOwnerResponse'
-        '400':
-          description: Bad request - validation error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 400
-                  code:
-                    type: string
-                    example: BAD_REQUEST
-                  message:
-                    type: string
-                    example: Invalid request data
-        '409':
-          description: Conflict
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 409
-                  code:
-                    type: string
-                    example: CONFLICT
-                  message:
-                    type: string
-                    example: Owner with email already exists
-      summary: Create new owner
-      tags:
-        - owners
-  /api/owners/login:
-    post:
-      description: Authenticate owner and receive access tokens
-      operationId: OwnerController_login
-      parameters: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginOwnerRequest'
-      responses:
-        '200':
-          description: Login successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OwnerResponseWithTokens'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: number
-                    example: 401
-                  code:
-                    type: string
-                    example: UNAUTHORIZED
-                  message:
-                    type: string
-                    example: Unauthorized - invalid or missing JWT token
-      summary: Login owner
-      tags:
-        - owners
 info:
   title: Cafe IT API
   description: API for managing cafes and seat availability
@@ -776,85 +372,18 @@ components:
       description: Enter JWT token
       in: header
   schemas:
-    OperatingHours:
+    CafeFullResponse:
       type: object
       properties:
-        startTime:
+        id:
           type: string
-          description: Opening time in HH:mm format
-          example: '09:00'
-          pattern: ^([01]\d|2[0-3]):[0-5]\d$
-        endTime:
-          type: string
-          description: Closing time in HH:mm format
-          example: '22:00'
-          pattern: ^([01]\d|2[0-3]):[0-5]\d$
-      required:
-        - startTime
-        - endTime
-    StoreLinks:
-      type: object
-      properties:
-        mapUrl:
-          type: string
-          description: Google Maps or similar map service URL
-          example: https://maps.google.com/maps?q=37.7749,-122.4194
-      required:
-        - mapUrl
-    Amenities:
-      type: object
-      properties:
-        noiseLevel:
-          type: string
-          description: Noise level of the cafe
-          example: moderate
-          enum:
-            - quiet
-            - moderate
-            - loud
-        hasWifi:
-          type: boolean
-          description: Whether the cafe has WiFi available
-          example: true
-        hasOutlets:
-          type: boolean
-          description: Whether the cafe has power outlets available
-          example: true
-      required:
-        - noiseLevel
-        - hasWifi
-        - hasOutlets
-    StoreInformation:
-      type: object
-      properties:
+          description: Unique identifier of the cafe
+          example: 550e8400-e29b-41d4-a716-446655440000
+          format: uuid
         name:
           type: string
           description: Name of the cafe
           example: Blue Bottle Coffee
-        address:
-          type: string
-          description: Physical address of the cafe
-          example: 123 Main St, San Francisco, CA 94102
-        hours:
-          description: Operating hours for the cafe
-          allOf:
-            - $ref: '#/components/schemas/OperatingHours'
-        links:
-          description: External links for the cafe
-          allOf:
-            - $ref: '#/components/schemas/StoreLinks'
-        amenities:
-          description: Available amenities at the cafe
-          allOf:
-            - $ref: '#/components/schemas/Amenities'
-      required:
-        - name
-        - address
-        - hours
-        - links
-    Location:
-      type: object
-      properties:
         lat:
           type: number
           description: Latitude coordinate
@@ -867,12 +396,41 @@ components:
           example: -122.4194
           minimum: -180
           maximum: 180
+        totalSeats:
+          type: number
+          description: Total number of seats in the cafe
+          example: 40
+          minimum: 0
+        availableSeats:
+          type: number
+          description: Number of currently available seats
+          example: 15
+          minimum: 0
+        lastUpdated:
+          type: string
+          description: ISO timestamp of when seat availability was last updated
+          example: '2024-01-15T10:30:00.000Z'
+          format: date-time
+        url:
+          type: string
+          description: Map URL for the cafe location
+          example: https://maps.google.com/maps?q=37.7749,-122.4194
       required:
+        - id
+        - name
         - lat
         - lng
-    SeatAvailability:
+        - totalSeats
+        - availableSeats
+        - url
+    CafeSeatAvailabilityResponse:
       type: object
       properties:
+        id:
+          type: string
+          description: Unique identifier of the cafe
+          example: 550e8400-e29b-41d4-a716-446655440000
+          format: uuid
         totalSeats:
           type: number
           description: Total number of seats in the cafe
@@ -889,54 +447,9 @@ components:
           example: '2024-01-15T10:30:00.000Z'
           format: date-time
       required:
+        - id
         - totalSeats
         - availableSeats
-    CafeFullResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique identifier of the cafe
-          example: 550e8400-e29b-41d4-a716-446655440000
-          format: uuid
-        ownerId:
-          type: string
-          description: Unique identifier of the cafe owner
-          example: 550e8400-e29b-41d4-a716-446655440001
-          format: uuid
-        storeInformation:
-          description: Complete store information including name, address, and hours
-          allOf:
-            - $ref: '#/components/schemas/StoreInformation'
-        location:
-          description: Geographic location of the cafe
-          allOf:
-            - $ref: '#/components/schemas/Location'
-        seatAvailability:
-          description: Current seat availability information
-          allOf:
-            - $ref: '#/components/schemas/SeatAvailability'
-      required:
-        - id
-        - ownerId
-        - storeInformation
-        - location
-        - seatAvailability
-    CafeSeatAvailabilityResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique identifier of the cafe
-          example: 550e8400-e29b-41d4-a716-446655440000
-          format: uuid
-        seatAvailability:
-          description: Current seat availability information
-          allOf:
-            - $ref: '#/components/schemas/SeatAvailability'
-      required:
-        - id
-        - seatAvailability
     UpdateCafeSeatAvailabilityRequest:
       type: object
       properties:
@@ -955,242 +468,74 @@ components:
           description: ISO timestamp of when seat availability was last updated
           example: '2024-01-15T10:30:00.000Z'
           format: date-time
-        ownerId:
-          type: string
-          description: Unique identifier of the cafe owner (must match the cafe's owner)
-          example: 550e8400-e29b-41d4-a716-446655440001
-          format: uuid
       required:
         - totalSeats
         - availableSeats
-        - ownerId
     CreateCafeRequest:
       type: object
       properties:
-        ownerId:
+        name:
           type: string
-          description: Unique identifier of the cafe owner
-          example: 550e8400-e29b-41d4-a716-446655440001
-          format: uuid
-        location:
-          description: Geographic location of the cafe
-          allOf:
-            - $ref: '#/components/schemas/Location'
-        seatAvailability:
-          description: Current seat availability information
-          allOf:
-            - $ref: '#/components/schemas/SeatAvailability'
-        storeInformation:
-          description: Store information including name, address, and hours
-          allOf:
-            - $ref: '#/components/schemas/StoreInformation'
+          description: Name of the cafe
+          example: Blue Bottle Coffee
+        lat:
+          type: number
+          description: Latitude coordinate
+          example: 37.7749
+          minimum: -90
+          maximum: 90
+        lng:
+          type: number
+          description: Longitude coordinate
+          example: -122.4194
+          minimum: -180
+          maximum: 180
+        totalSeats:
+          type: number
+          description: Total number of seats in the cafe
+          example: 40
+          minimum: 0
+        url:
+          type: string
+          description: Map URL for the cafe location
+          example: https://maps.google.com/maps?q=37.7749,-122.4194
       required:
-        - ownerId
-        - location
-        - seatAvailability
-        - storeInformation
+        - name
+        - lat
+        - lng
+        - totalSeats
+        - url
     UpdateCafeRequest:
       type: object
       properties:
-        ownerId:
+        name:
           type: string
-          description: Unique identifier of the cafe owner
-          example: 550e8400-e29b-41d4-a716-446655440001
-          format: uuid
-        location:
-          description: Geographic location of the cafe
-          allOf:
-            - $ref: '#/components/schemas/Location'
-        seatAvailability:
-          description: Current seat availability information
-          allOf:
-            - $ref: '#/components/schemas/SeatAvailability'
-        storeInformation:
-          description: Store information including name, address, and hours
-          allOf:
-            - $ref: '#/components/schemas/StoreInformation'
-      required:
-        - ownerId
-        - location
-        - seatAvailability
-        - storeInformation
-    RefreshTokenRequest:
-      type: object
-      properties:
-        refreshToken:
-          type: string
-          description: JWT refresh token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-      required:
-        - refreshToken
-    RefreshTokenResponse:
-      type: object
-      properties:
-        accessToken:
-          type: string
-          description: JWT access token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        refreshToken:
-          type: string
-          description: JWT refresh token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        expiresIn:
+          description: Name of the cafe
+          example: Blue Bottle Coffee
+        lat:
           type: number
-          description: Token expiration time in seconds
-          example: 900
-      required:
-        - accessToken
-        - refreshToken
-        - expiresIn
-    GetOwnerByIdResponse:
-      type: object
-      properties:
-        ownerId:
-          type: string
-          description: Unique identifier of the cafe owner
-          example: 550e8400-e29b-41d4-a716-446655440001
-          format: uuid
-        email:
-          type: string
-          description: Owner email address
-          example: owner@example.com
-        cafeIds:
-          description: Array of cafe UUIDs owned by this owner
-          example:
-            - 550e8400-e29b-41d4-a716-446655440000
-            - 550e8400-e29b-41d4-a716-446655440001
-          type: array
-          items:
-            type: string
-      required:
-        - ownerId
-        - email
-        - cafeIds
-    CreateOwnerRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          description: Owner email address
-          example: owner@example.com
-        password:
-          type: string
-          description: Owner password
-          example: securePassword123
-      required:
-        - email
-        - password
-    CreateOwnerResponse:
-      type: object
-      properties:
-        ownerId:
-          type: string
-          description: Unique identifier of the cafe owner
-          example: 550e8400-e29b-41d4-a716-446655440001
-          format: uuid
-        email:
-          type: string
-          description: Owner email address
-          example: owner@example.com
-        cafeIds:
-          description: Array of cafe UUIDs owned by this owner
-          example:
-            - 550e8400-e29b-41d4-a716-446655440000
-            - 550e8400-e29b-41d4-a716-446655440001
-          type: array
-          items:
-            type: string
-        accessToken:
-          type: string
-          description: JWT access token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        refreshToken:
-          type: string
-          description: JWT refresh token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        expiresIn:
+          description: Latitude coordinate
+          example: 37.7749
+          minimum: -90
+          maximum: 90
+        lng:
           type: number
-          description: Token expiration time in seconds
-          example: 900
-      required:
-        - ownerId
-        - email
-        - cafeIds
-        - accessToken
-        - refreshToken
-        - expiresIn
-    LoginOwnerRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          description: Owner email address
-          example: owner@example.com
-        password:
-          type: string
-          description: Owner password
-          example: securePassword123
-      required:
-        - email
-        - password
-    OwnerResponseWithTokens:
-      type: object
-      properties:
-        ownerId:
-          type: string
-          description: Unique identifier of the cafe owner
-          example: 550e8400-e29b-41d4-a716-446655440001
-          format: uuid
-        email:
-          type: string
-          description: Owner email address
-          example: owner@example.com
-        cafeIds:
-          description: Array of cafe UUIDs owned by this owner
-          example:
-            - 550e8400-e29b-41d4-a716-446655440000
-            - 550e8400-e29b-41d4-a716-446655440001
-          type: array
-          items:
-            type: string
-        accessToken:
-          type: string
-          description: JWT access token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        refreshToken:
-          type: string
-          description: JWT refresh token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        expiresIn:
+          description: Longitude coordinate
+          example: -122.4194
+          minimum: -180
+          maximum: 180
+        totalSeats:
           type: number
-          description: Token expiration time in seconds
-          example: 900
+          description: Total number of seats in the cafe
+          example: 40
+          minimum: 0
+        url:
+          type: string
+          description: Map URL for the cafe location
+          example: https://maps.google.com/maps?q=37.7749,-122.4194
       required:
-        - ownerId
-        - email
-        - cafeIds
-        - accessToken
-        - refreshToken
-        - expiresIn
-    UpdateOwnerRequest:
-      type: object
-      properties:
-        cafeIds:
-          description: Array of cafe UUIDs owned by this owner
-          example:
-            - 550e8400-e29b-41d4-a716-446655440000
-            - 550e8400-e29b-41d4-a716-446655440001
-          type: array
-          items:
-            type: string
-      required:
-        - cafeIds
-    DeleteOwnerResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          description: Indicates whether the deletion was successful
-          example: true
-      required:
-        - success
+        - name
+        - lat
+        - lng
+        - totalSeats
+        - url

@@ -1,46 +1,71 @@
-import { Type } from "class-transformer";
-import {
-  Location,
-  SeatAvailability,
-  StoreInformation,
-} from "./cafe-common.dto";
-import { ValidateNested } from "class-validator";
 import {
   CafeIdProperty,
-  OwnerIdProperty,
-  NestedProperty,
+  StringProperty,
+  UrlProperty,
+  LatitudeProperty,
+  LongitudeProperty,
+  SeatCountProperty,
+  OptionalDateProperty,
 } from "../../common/decorators/property.decorators";
 
 export class CafeFullResponse {
   @CafeIdProperty()
   id: string;
 
-  @OwnerIdProperty()
-  ownerId: string;
-
-  @NestedProperty(StoreInformation, {
-    description:
-      "Complete store information including name, address, and hours",
+  @StringProperty({
+    description: "Name of the cafe",
+    example: "Blue Bottle Coffee",
   })
-  storeInformation: StoreInformation;
+  name: string;
 
-  @NestedProperty(Location, {
-    description: "Geographic location of the cafe",
-  })
-  location: Location;
+  @LatitudeProperty()
+  lat: number;
 
-  @NestedProperty(SeatAvailability, {
-    description: "Current seat availability information",
+  @LongitudeProperty()
+  lng: number;
+
+  @SeatCountProperty({
+    description: "Total number of seats in the cafe",
   })
-  seatAvailability: SeatAvailability;
+  totalSeats: number;
+
+  @SeatCountProperty({
+    description: "Number of currently available seats",
+    example: 15,
+  })
+  availableSeats: number;
+
+  @OptionalDateProperty({
+    description: "ISO timestamp of when seat availability was last updated",
+    example: "2024-01-15T10:30:00.000Z",
+  })
+  lastUpdated?: string;
+
+  @UrlProperty({
+    description: "Map URL for the cafe location",
+    example: "https://maps.google.com/maps?q=37.7749,-122.4194",
+  })
+  url: string;
 }
 
 export class CafeSeatAvailabilityResponse {
   @CafeIdProperty()
   id: string;
 
-  @NestedProperty(SeatAvailability, {
-    description: "Current seat availability information",
+  @SeatCountProperty({
+    description: "Total number of seats in the cafe",
   })
-  seatAvailability: SeatAvailability;
+  totalSeats: number;
+
+  @SeatCountProperty({
+    description: "Number of currently available seats",
+    example: 15,
+  })
+  availableSeats: number;
+
+  @OptionalDateProperty({
+    description: "ISO timestamp of when seat availability was last updated",
+    example: "2024-01-15T10:30:00.000Z",
+  })
+  lastUpdated?: string;
 }

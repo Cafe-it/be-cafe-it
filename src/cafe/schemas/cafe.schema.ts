@@ -1,6 +1,6 @@
-import { generateRandomId } from "../../common/utils/generator";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
+import { generateRandomId } from "../../common/utils/generator";
 
 /**
  * Sub-documents
@@ -20,23 +20,6 @@ class SeatAvailability {
 const SeatAvailabilitySchema = SchemaFactory.createForClass(SeatAvailability);
 
 @Schema({ _id: false })
-class StoreLinks {
-  @Prop({ required: true })
-  mapUrl: string;
-}
-const StoreLinksSchema = SchemaFactory.createForClass(StoreLinks);
-
-@Schema({ _id: false })
-class OperatingHours {
-  @Prop({ match: /^([01]\d|2[0-3]):[0-5]\d$/ }) // HH:mm format
-  startTime: string;
-
-  @Prop({ match: /^([01]\d|2[0-3]):[0-5]\d$/ })
-  endTime: string;
-}
-const OperatingHoursSchema = SchemaFactory.createForClass(OperatingHours);
-
-@Schema({ _id: false })
 export class GeoLocation {
   @Prop({ type: String, enum: ["Point"], default: "Point" })
   type: "Point";
@@ -46,32 +29,6 @@ export class GeoLocation {
   coordinates: number[];
 }
 const GeoLocationSchema = SchemaFactory.createForClass(GeoLocation);
-
-@Schema({ _id: false })
-class Amenities {
-  @Prop() hasWifi: boolean;
-  @Prop() hasOutlets: boolean;
-  @Prop({ enum: ["quiet", "moderate", "loud"] }) noiseLevel: string;
-}
-const AmenitiesSchema = SchemaFactory.createForClass(Amenities);
-
-@Schema({ _id: false })
-class StoreInformation {
-  @Prop({ required: true })
-  name: string;
-
-  @Prop({ required: true })
-  address: string;
-
-  @Prop({ type: OperatingHoursSchema }) hours: OperatingHours;
-  @Prop({ type: StoreLinksSchema }) links: StoreLinks;
-  @Prop({
-    type: AmenitiesSchema,
-    default: () => ({}),
-  })
-  amenities: Amenities;
-}
-const StoreInformationSchema = SchemaFactory.createForClass(StoreInformation);
 
 /**
  * Main Cafe Schema
@@ -84,7 +41,7 @@ export class Cafe {
   id: string;
 
   @Prop({ required: true })
-  ownerId: string;
+  name: string;
 
   @Prop({ type: SeatAvailabilitySchema, required: true })
   seatAvailability: SeatAvailability;
@@ -96,11 +53,8 @@ export class Cafe {
   @Prop({ type: GeoLocationSchema, required: true })
   location: GeoLocation;
 
-  /**
-   * Optional detailed store information.
-   */
-  @Prop({ type: StoreInformationSchema })
-  storeInformation: StoreInformation;
+  @Prop({ required: true })
+  url: string;
 }
 
 export const CafeSchema = SchemaFactory.createForClass(Cafe);

@@ -232,9 +232,9 @@ export function CafeCreateEndpoint<T, U>(
   return CreateEndpoint(responseDto, requestDto, {
     summary: "Create a new cafe",
     description:
-      "Create a new cafe with location, seat availability, and store information",
+      "Create a new cafe with basic information: name, location, seats, and URL",
     successMessage: "Successfully created cafe",
-    requiresAuth: true,
+    requiresAuth: false,
   });
 }
 
@@ -244,13 +244,11 @@ export function CafeUpdateEndpoint<T, U>(
 ) {
   return UpdateEndpoint(responseDto, requestDto, {
     summary: "Update cafe",
-    description:
-      "Update cafe information including location, seats, and store details (owner only)",
+    description: "Update cafe information",
     paramName: "cafeId",
     paramDescription: "Cafe UUID",
     successMessage: "Successfully updated cafe",
-    requiresAuth: true,
-    ownerOnly: true,
+    requiresAuth: false,
   });
 }
 
@@ -281,12 +279,11 @@ export function CafeUpdateSeatsEndpoint<T, U>(
 ) {
   return UpdateEndpoint(responseDto, requestDto, {
     summary: "Update cafe seat availability",
-    description: "Update the current seat availability for a cafe (owner only)",
+    description: "Update the available and total seat count for a cafe",
     paramName: "cafeId",
     paramDescription: "Cafe UUID",
-    successMessage: "Successfully updated seat availability",
-    requiresAuth: true,
-    ownerOnly: true,
+    successMessage: "Successfully updated cafe seat availability",
+    requiresAuth: false,
   });
 }
 

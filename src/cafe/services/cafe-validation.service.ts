@@ -5,18 +5,17 @@ import {
 } from "@nestjs/common";
 import { CafeDocument } from "../schemas/cafe.schema";
 import { CreateCafeRequest, UpdateCafeRequest } from "../dto/cafe-request.dto";
-import { OperatingHours, SeatAvailability } from "../dto/cafe-common.dto";
 
 @Injectable()
 export class CafeValidationService {
   validateUpdateCafeRequest(req: UpdateCafeRequest): void {
-    this.validateSeatAvailability(req.seatAvailability);
-    this.validateOperatingHours(req.storeInformation.hours);
+    // For update requests, we just validate that totalSeats is positive
+    this.validateTotalSeats(req.totalSeats);
   }
 
   validateCreateCafeRequest(req: CreateCafeRequest): void {
-    this.validateSeatAvailability(req.seatAvailability);
-    this.validateOperatingHours(req.storeInformation.hours);
+    // For create requests, we just validate that totalSeats is positive
+    this.validateTotalSeats(req.totalSeats);
   }
 
   validateCafeExists(
@@ -28,8 +27,7 @@ export class CafeValidationService {
     }
   }
 
-  validateSeatAvailability(seatAvailability: SeatAvailability): void {
-    const { totalSeats, availableSeats } = seatAvailability;
+  validateSeatAvailability(totalSeats: number, availableSeats: number): void {
     if (availableSeats > totalSeats) {
       throw new BadRequestException(
         "Available seats cannot exceed total seats"
@@ -37,17 +35,9 @@ export class CafeValidationService {
     }
   }
 
-  private validateOperatingHours(operatingHours: OperatingHours): void {
-    const startMinutes = this.timeToMinutes(operatingHours.startTime);
-    const endMinutes = this.timeToMinutes(operatingHours.endTime);
-
-    if (startMinutes >= endMinutes) {
-      throw new BadRequestException("End time must be after start time");
+  private validateTotalSeats(totalSeats: number): void {
+    if (totalSeats < 0) {
+      throw new BadRequestException("Total seats must be non-negative");
     }
-  }
-
-  private timeToMinutes(timeStr: string): number {
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    return hours * 60 + minutes;
   }
 }
