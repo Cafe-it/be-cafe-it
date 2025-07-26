@@ -1,15 +1,17 @@
-import { NestFactory } from "@nestjs/core";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { AppModule } from "../src/app.module";
-import { RequestValidationPipe } from "../src/common/pipes/RequestValidationPipe";
-import { ClassSerializerInterceptor } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import { ConfigService } from "@nestjs/config";
-import { AppConfig } from "../src/common/config";
-import { GlobalExceptionFilter } from "../src/common/filters/global-exception.filter";
 import * as fs from "fs";
 import * as path from "path";
 import * as yaml from "js-yaml";
+
+import { ClassSerializerInterceptor } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { NestFactory, Reflector } from "@nestjs/core";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+
+import { AppModule } from "../src/app.module";
+import { AppConfig } from "../src/common/config";
+import { GlobalExceptionFilter } from "../src/common/filters/global-exception.filter";
+import { RequestValidationPipe } from "../src/common/pipes/RequestValidationPipe";
+import { WinstonLoggerService } from "../src/common/services";
 
 async function generateOpenAPI() {
   console.log("🚀 Starting OpenAPI generation...");
@@ -23,8 +25,12 @@ async function generateOpenAPI() {
     const appConfig = configService.get<AppConfig>("app");
     const { apiPrefix } = appConfig || { apiPrefix: "api" };
 
+    // Initialize custom logger (same as main.ts)
+    const loggerService = await app.resolve(WinstonLoggerService);
+
     // Set up the same configuration as in main.ts
-    app.useGlobalFilters(new GlobalExceptionFilter());
+    const exceptionFilter = new GlobalExceptionFilter(loggerService);
+    app.useGlobalFilters(exceptionFilter);
     app.useGlobalPipes(new RequestValidationPipe());
     app.useGlobalInterceptors(
       new ClassSerializerInterceptor(app.get(Reflector))

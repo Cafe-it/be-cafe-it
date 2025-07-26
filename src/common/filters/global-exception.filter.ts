@@ -4,13 +4,19 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  Logger,
+  Inject,
 } from "@nestjs/common";
 import { Response } from "express";
+import { WinstonLoggerService } from "../services";
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(GlobalExceptionFilter.name);
+  constructor(
+    @Inject(WinstonLoggerService)
+    private readonly logger: WinstonLoggerService
+  ) {
+    this.logger.setContext(GlobalExceptionFilter.name);
+  }
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -19,8 +25,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       this.handleHttpException(response, exception);
     } else {
-      this.logger.error("Unhandled exception", exception);
-      this.handleUnhandledException(response, exception);
+      this.logger.error("Unhandled exception", JSON.stringify(exception));
+      this.handleUnhandledException(response);
     }
   }
 
@@ -31,7 +37,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     this.sendResponse(response, status, message);
   }
 
-  private handleUnhandledException(response: Response, exception: unknown) {
+  private handleUnhandledException(response: Response) {
     const status = HttpStatus.INTERNAL_SERVER_ERROR;
     const message = "Internal server error";
 

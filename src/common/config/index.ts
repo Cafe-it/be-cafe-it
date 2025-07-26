@@ -3,3 +3,4 @@ export { default as databaseConfig } from "./database.config";
 
 export * from "./app.config";
 export * from "./database.config";
+export * from "./logging.config";

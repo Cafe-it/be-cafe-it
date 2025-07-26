@@ -1,11 +1,12 @@
 import { Module, Logger } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
+import { WinstonLoggerService } from "../common/services";
 import { CafeController } from "./cafe.controller";
 import { CafeService } from "./cafe.service";
+import { Cafe, CafeSchema } from "./schemas/cafe.schema";
 import { CafeRepository } from "./repository/cafe.repository";
 import { CafeTransformService } from "./services/cafe-transform.service";
 import { CafeValidationService } from "./services/cafe-validation.service";
-import { Cafe, CafeSchema } from "./schemas/cafe.schema";
 
 @Module({
   imports: [
@@ -17,11 +18,11 @@ import { Cafe, CafeSchema } from "./schemas/cafe.schema";
     CafeTransformService,
     CafeValidationService,
     Logger,
+    WinstonLoggerService,
     {
       provide: "ICafeRepository",
       useClass: CafeRepository,
     },
   ],
-  exports: [CafeService, CafeTransformService, CafeValidationService],
 })
 export class CafeModule {}
