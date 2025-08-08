@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { CafeModule } from "./cafe/cafe.module";
+import { MapModule } from "./maps/map.module";
 import { appConfig, databaseConfig, loggingConfig } from "./common/config";
 import { WinstonLoggerService } from "./common/services";
 
@@ -20,6 +21,7 @@ import { WinstonLoggerService } from "./common/services";
       inject: [ConfigService],
     }),
     CafeModule,
+    MapModule,
   ],
   controllers: [],
   providers: [WinstonLoggerService],
