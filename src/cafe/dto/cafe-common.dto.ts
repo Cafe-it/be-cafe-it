@@ -6,6 +6,7 @@ import {
   LongitudeProperty,
   SeatCountProperty,
   OptionalDateProperty,
+  OptionalBooleanProperty,
 } from "../../common/decorators/property.decorators";
 
 export class Location {
@@ -78,4 +79,11 @@ export class CafeBasicInfo {
     example: "https://maps.google.com/maps?q=37.7749,-122.4194",
   })
   url: string;
+
+  @OptionalBooleanProperty({
+    description:
+      "Whether the cafe uses manual monitoring (true) or automatic camera monitoring (false). Defaults to false (camera monitoring).",
+    example: false,
+  })
+  isManualMonitoring?: boolean;
 }

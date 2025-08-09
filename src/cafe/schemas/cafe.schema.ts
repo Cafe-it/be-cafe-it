@@ -55,6 +55,14 @@ export class Cafe {
 
   @Prop({ required: true })
   url: string;
+
+  /**
+   * Optional flag to indicate monitoring type:
+   * - false or undefined: automatic monitoring using camera (default)
+   * - true: manual monitoring
+   */
+  @Prop({ required: false, default: false })
+  isManualMonitoring?: boolean;
 }
 
 export const CafeSchema = SchemaFactory.createForClass(Cafe);

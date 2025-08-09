@@ -27,6 +27,7 @@ export class CafeTransformService {
       availableSeats: doc.seatAvailability.availableSeats,
       lastUpdated: doc.seatAvailability.lastUpdated,
       url: doc.url,
+      isManualMonitoring: doc.isManualMonitoring ?? false,
     });
   }
 
@@ -109,6 +110,7 @@ export class CafeTransformService {
         0 // Initially no seats are available
       ),
       url: data.url,
+      isManualMonitoring: data.isManualMonitoring ?? false,
     };
   }
 }

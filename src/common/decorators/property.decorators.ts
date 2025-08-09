@@ -102,6 +102,19 @@ export function BooleanProperty(options: PropertyOptions = {}) {
   );
 }
 
+export function OptionalBooleanProperty(options: PropertyOptions = {}) {
+  return applyDecorators(
+    ApiProperty({
+      description: options.description ?? "Optional boolean value",
+      example: options.example,
+      required: false,
+    }),
+    Expose(),
+    IsBoolean(),
+    IsOptional()
+  );
+}
+
 export function UrlProperty(options: PropertyOptions = {}) {
   return applyDecorators(
     ApiProperty({
